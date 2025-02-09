@@ -28,10 +28,14 @@ async function handler(m, {conn, usedPrefix, command}) {
 _${canal1}_
 
 ${totalUsers ? `💠 *Sub Bots conectados:* ${totalUsers || 0}\n` : ''}${cantidadCarpetas ? `📁 *Sesiones creadas:* ${cantidadCarpetas}\n` : ''}${totalUsers ? `📁 *Sesiones activas:* ${totalUsers || 0}\n` : ''}💻 *Servidor:* \`\`\`${uptime}\`\`\`\n\n${replyMessage.trim()}`.trim()
-    await conn.sendMessage(m.chat, {
-        image: {url: ['https://qu.ax/spUwF.jpeg', 'https://qu.ax/ZfKAD.jpeg', 'https://qu.ax/UKUqX.jpeg'].getRandom()},
-        caption: responseMessage
-    }, {quoted: m})
+    try {
+        await conn.sendMessage(m.chat, {
+            image: {url: ['https://qu.ax/spUwF.jpeg', 'https://qu.ax/ZfKAD.jpeg', 'https://qu.ax/UKUqX.jpeg'].getRandom()},
+            caption: responseMessage
+        }, {quoted: m})
+    } catch {
+        await conn.sendMessage(m.chat, {text: responseMessage}, {quoted: m})
+    }
 }
 
 handler.command = /^(listjadibots|bots|subsbots)$/i

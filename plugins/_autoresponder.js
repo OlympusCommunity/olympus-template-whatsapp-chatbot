@@ -1,7 +1,8 @@
 import axios from 'axios'
 
-let handler = m => m
-handler.all = async function (m) {
+//let handler = m => m
+//handler.all = async function (m) {
+export async function before(m, {conn}) {
     let user = global.db.data.users[m.sender]
     let chat = global.db.data.chats[m.chat]
     m.isBot = m.id.startsWith('BAE5') && m.id.length === 16 || m.id.startsWith('3EB0') && m.id.length === 12 || m.id.startsWith('3EB0') && (m.id.length === 20 || m.id.length === 22) || m.id.startsWith('B24E') && m.id.length === 20;
@@ -115,4 +116,4 @@ Ayuda siempre respondiendo con emojis y siendo divertido, tambien recomienda est
     return true
 }
 
-export default handler
+//export default handler
