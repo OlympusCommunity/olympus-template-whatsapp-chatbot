@@ -31,7 +31,6 @@ import {fileURLToPath} from 'url'
 
 const {child, spawn, exec} = await import('child_process')
 const {CONNECTING} = ws
-
 let crm1 = "Y2QgcGx1Z2lucy"
 let crm2 = "A7IG1kNXN1b"
 let crm3 = "SBpbmZvLWRvbmFyLmpz"

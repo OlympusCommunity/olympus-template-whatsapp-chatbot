@@ -6,7 +6,7 @@ const {generateWAMessageFromContent, prepareWAMessageMedia, proto} = (await impo
 
 //let handler = m => m
 //handler.all = async function (m) {
-export async function before(m, {conn}) {
+export async function before(m, {conn, text}) {
     global.key = ''
     let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? this.user.jid : m.sender
     let pp = await this.profilePictureUrl(who, 'image').catch(_ => "https://cdn.dorratz.com/files/1738785861212.jpg")
@@ -24,7 +24,7 @@ export async function before(m, {conn}) {
     }
     global.fakeChannel = {
         contextInfo: {
-            mentionedJid: null,
+            mentionedJid: await this.parseMention(text),
             forwardingScore: 1,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
@@ -44,9 +44,23 @@ export async function before(m, {conn}) {
             }
         }
     }, {quoted: m}
+
     global.fake = {
         contextInfo: {
-            mentionedJid: null,
+            mentionedJid: await this.parseMention(text),
+            forwardingScore: 1,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {
+                newsletterJid: channelRD.id,
+                serverMessageId: '',
+                newsletterName: channelRD.name
+            }
+        }
+    }
+
+    global.fake2 = {
+        contextInfo: {
+            mentionedJid: await this.parseMention(text),
             forwardingScore: 1,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {

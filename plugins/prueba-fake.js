@@ -10,8 +10,7 @@ let handler = async (m, {conn, text, usedPrefix, command}) => {
     let img_cita = 'https://qu.ax/TPVV.jpg'
     let titulo_fkontak = 'Gata Dios'
 
-    let fkontak = {
-        key: {participant: `0@s.whatsapp.net`, ...(m.chat ? {remoteJid: `6285600793871-1614953337@g.us`} : {})},
+    let fkontak = {key: {participant: `0@s.whatsapp.net`, ...(m.chat ? {remoteJid: `6285600793871-1614953337@g.us`} : {})},
         message: {
             'contactMessage': {
                 'displayName': `${titulo_fkontak}`,

@@ -8,7 +8,6 @@ import {xpRange} from '../lib/levelling.js'
 import {join} from 'path'
 
 const {levelling} = '../lib/levelling.js'
-
 let handler = async (m, {conn, usedPrefix, usedPrefix: _p, __dirname, text, command}) => {
     const dispositivo = await getDevice(m.key.id)
     try {

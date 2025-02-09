@@ -2,7 +2,6 @@ import {sticker} from '../lib/sticker.js'
 import fetch from 'node-fetch'
 
 let MessageType = (await import(global.baileys)).default
-
 let handler = async (m, {conn, text, args, usedPrefix, command}) => {
     if (!args[0]) throw `𝘿𝙀𝘽𝙀 𝘿𝙀 𝙐𝙎𝘼𝙍 𝘿𝙊𝙎 𝙀𝙈𝙊𝙅𝙄𝙎 𝙔 𝙀𝙉 𝙈𝙀𝘿𝙄𝙊 𝙐𝙎𝘼𝙍 𝙀𝙇 *+*\n𝙀𝙅𝙀𝙈𝙋𝙇𝙊\n*${usedPrefix + command}* 😺+😆\n\n𝙔𝙊𝙐 𝙈𝙐𝙎𝙏 𝙐𝙎𝙀 𝙏𝙒𝙊 𝙀𝙈𝙊𝙅𝙄𝙎 𝘼𝙉𝘿 𝙄𝙉 𝙏𝙃𝙀 𝙈𝙄𝘿𝘿𝙇𝙀 𝙐𝙎𝙀 𝙏𝙃𝙀 *+*\n𝙀𝙓𝘼𝙈𝙋𝙇𝙀\n*${usedPrefix + command}* 😼+😁`
     let [emoji1, emoji2] = text.split`+`

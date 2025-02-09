@@ -1,5 +1,4 @@
 const xpperlimit = 300
-
 let handler = async (m, {command, conn, usedPrefix, args}) => {
     let user = global.db.data.users[m.sender]
     let time = user.lastmiming + 150000 //5 min
