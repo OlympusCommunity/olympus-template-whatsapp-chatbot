@@ -50,25 +50,23 @@ export async function handler(chatUpdate) {
         try {
 // TODO: use loop to insert data instead of this
             let user = global.db.data.users[m.sender]
-            /*------------------------------------------------*/
-            let chatgptUser = global.chatgpt.data.users[m.sender];
-            if (typeof chatgptUser !== "object")
-                global.chatgpt.data.users[m.sender] = [];
-            /*------------------------------------------------*/
             if (typeof user !== 'object')
                 global.db.data.users[m.sender] = {}
             if (user) {
-                if (!isNumber(user.exp)) user.exp = 0
+                if (!isNumber(user.exp)) user.exp = 0;
+                if (user.exp < 0) user.exp = 0;
+                if (!isNumber(user.money)) user.money = 150;
+                if (user.money < 0) user.money = 0;
+                if (!isNumber(user.limit)) user.limit = 15;
+                if (user.limit < 0) user.limit = 0;
+                if (!isNumber(user.joincount)) user.joincount = 1
+                if (user.joincount < 0) user.joincount = 0;
                 if (!('premium' in user)) user.premium = false
                 if (!('muto' in user)) user.muto = false
-                if (!isNumber(user.joincount)) user.joincount = 1
-                if (!isNumber(user.money)) user.money = 150
-                if (!isNumber(user.limit)) user.limit = 15
                 if (!('registered' in user)) user.registered = false
                 if (!('registroR' in user)) user.registroR = false
                 if (!('registroC' in user)) user.registroC = false
                 if (!isNumber(user.IDregister)) user.IDregister = 0
-
                 if (!user.registered) {
                     if (!('name' in user)) user.name = m.name
                     if (!('age' in user)) user.age = 0
@@ -478,6 +476,7 @@ export async function handler(chatUpdate) {
                 if (!isNumber(user.steak)) user.steak = 0
                 if (!isNumber(user.stick)) user.stick = 0
                 if (!isNumber(user.strength)) user.strength = 0
+                if (!user.mensaje) user.mensaje = 0;
                 if (!isNumber(user.string)) user.string = 0
                 if (!isNumber(user.superior)) user.superior = 0
                 if (!isNumber(user.suplabu)) user.suplabu = 0
@@ -545,6 +544,7 @@ export async function handler(chatUpdate) {
                     anakserigala: 0,
                     anggur: 0,
                     banco: 0,
+                    mensaje: 0,
                     anjing: 0,
                     anjinglastclaim: 0,
                     antispam: 0,
@@ -1111,8 +1111,8 @@ export async function handler(chatUpdate) {
             }, time)
         }
 
+        if ((m.id.startsWith('NJX-') || (m.id.startsWith('BAE5') && m.id.length === 16) || (m.id.startsWith('B24E') && m.id.length === 20))) return
 
-        if (m.id.startsWith('NJX-') || m.id.startsWith('BAE5') && m.id.length === 16 || m.id.startsWith('3EB0') && m.id.length === 12 || m.id.startsWith('3EB0') && (m.id.length === 20 || m.id.length === 22) || m.id.startsWith('B24E') && m.id.length === 20) return
         if (opts['nyimak']) return
         if (!isROwner && opts['self']) return
         if (opts['pconly'] && m.chat.endsWith('g.us')) return
@@ -1637,20 +1637,46 @@ export async function deleteUpdate(message) {
         const {fromMe, id, participant} = message
         if (fromMe) return
         let msg = this.serializeM(this.loadMessage(id))
-        let chat = global.db.data.chats[msg?.chat] || {}
-        if (!chat?.delete) return
         if (!msg) return
-        if (!msg?.isGroup) return
-        const antideleteMessage = `*╭━━⬣ ${lenguajeGB['smsCont19']()} ⬣━━ 𓃠*
+        let chat = global.db.data.chats[msg.chat] || {}
+        if (!chat?.delete) return
+        const isGroup = msg.chat.endsWith('@g.us')
+        let botIsAdmin = false
+        if (isGroup) {
+            const groupMetadata = await this.groupMetadata(msg.chat)
+            const botNumber = this.user?.jid || ''
+            if (groupMetadata) {
+                const adminList = groupMetadata.participants.filter(p => p.admin).map(p => p.id)
+                botIsAdmin = adminList.includes(botNumber)
+                if (!botIsAdmin) return
+            }
+        }
+        const antideleteMessage = `*[ ANTI ELIMINAR ]*\n\n@${participant.split('@')[0]} eliminó un mensaje\nReenviando el mensaje...\n\n*Para desactivar esta función escriba:*\n#disable delete\n\n[ANTI_DELETE]`
+        await this.sendMessage(msg.chat, {text: antideleteMessage, mentions: [participant]}, {quoted: msg})
+        await this.copyNForward(msg.chat, msg).catch(e => console.log(e, msg));
+    } catch (e) {
+        console.error('Error  deleteUpdate: ', e)
+    }
+}
+
+/*export async function deleteUpdate(message) {
+try {
+const { fromMe, id, participant } = message
+if (fromMe) return 
+let msg = this.serializeM(this.loadMessage(id))
+let chat = global.db.data.chats[msg?.chat] || {}
+if (!chat?.delete) return 
+if (!msg) return 
+if (!msg?.isGroup) return 
+const antideleteMessage = `*╭━━⬣ ${lenguajeGB['smsCont19']()} ⬣━━ 𓃠*
 ${lenguajeGB['smsCont20']()} @${participant.split`@`[0]}
 ${lenguajeGB['smsCont21']()}
 *╰━━━⬣ ${lenguajeGB['smsCont19']()} ⬣━━╯*`.trim();
-        await this.sendMessage(msg.chat, {text: antideleteMessage, mentions: [participant]}, {quoted: msg})
-        this.copyNForward(msg.chat, msg).catch(e => console.log(e, msg))
-    } catch (e) {
-        console.error(e)
-    }
-}
+await this.sendMessage(msg.chat, {text: antideleteMessage, mentions: [participant]}, {quoted: msg})
+this.copyNForward(msg.chat, msg).catch(e => console.log(e, msg))
+} catch (e) {
+console.error(e)
+}}*/
 
 global.dfail = (type, m, conn) => {
     let msg = {

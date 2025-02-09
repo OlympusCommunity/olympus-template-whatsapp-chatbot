@@ -4,11 +4,12 @@ import '../config.js'
 
 const {generateWAMessageFromContent, prepareWAMessageMedia, proto} = (await import(global.baileys))
 
-let handler = m => m
-handler.all = async function (m) {
+//let handler = m => m
+//handler.all = async function (m) {
+export async function before(m, {conn}) {
     global.key = ''
     let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? this.user.jid : m.sender
-    let pp = await this.profilePictureUrl(who, 'image').catch(_ => "https://qu.ax/boNQF.jpg")
+    let pp = await this.profilePictureUrl(who, 'image').catch(_ => "https://cdn.dorratz.com/files/1738785861212.jpg")
 
 // Fake
     global.fkontak = {
@@ -35,7 +36,7 @@ handler.all = async function (m) {
                 title: wm,
                 body: vs,
                 mediaType: 1,
-                renderLargerThumbnail: false,
+                renderLargerThumbnail: true,
                 previewType: `PHOTO`,
                 thumbnailUrl: gataImg,
                 thumbnail: imagen1,
@@ -57,7 +58,7 @@ handler.all = async function (m) {
                 title: wm,
                 body: vs,
                 mediaType: 1,
-                renderLargerThumbnail: false,
+                renderLargerThumbnail: true,
                 previewType: `PHOTO`,
                 thumbnailUrl: pp,
                 sourceUrl: accountsgb
@@ -157,7 +158,9 @@ li.DESTRAVip.to
 ☣✝ﾚⅰɬ◊D͠Я◊ⅰD͠  D͠∑ㄅɬЯ∆√✝☣`
 
 }
-export default handler
+
+//export default handler
+
 global.bot = "wa.me/525577917106"
 global.canales = [canal1, canal2, canal3, canal4][Math.floor(Math.random() * 4)]
 global.welgata = [tk, ig, md, yt, paypal, fb, ths, asistencia][Math.floor(Math.random() * 8)]
@@ -184,31 +187,31 @@ global.imagen11 = fs.readFileSync("./media/menus/img10.jpg")
 global.imagen12 = fs.readFileSync("./media/menus/img11.jpg")
 global.imagen13 = fs.readFileSync("./media/menus/img12.jpg")
 
-global.img = 'https://qu.ax/vZii.jpg'
-global.img2 = 'https://qu.ax/hjcB.jpg'
+global.img = 'https://cdn.dorratz.com/files/1738785861212.jpg'
+global.img2 = img //'https://qu.ax/hjcB.jpg' 
 
-global.img3 = 'https://qu.ax/zELg.jpg' //prem
-global.img4 = 'https://qu.ax/YueS.jpg' //prem
+global.img3 = img //'https://qu.ax/zELg.jpg'  //prem
+global.img4 = img //'https://qu.ax/YueS.jpg'  //prem
 
-global.img5 = 'https://qu.ax/xLcn.jpg'
-global.img6 = 'https://qu.ax/EGOe.jpg'
-global.img7 = 'https://qu.ax/wly.jpg'
-global.img8 = 'https://qu.ax/TPVV.jpg'
-global.img9 = 'https://qu.ax/qKlN.jpg'
+global.img5 = img //'https://qu.ax/xLcn.jpg' 
+global.img6 = img //'https://qu.ax/EGOe.jpg' 
+global.img7 = img //'https://qu.ax/wly.jpg'
+global.img8 = img //'https://qu.ax/TPVV.jpg' 
+global.img9 = img //'https://qu.ax/qKlN.jpg' 
 
-global.img10 = 'https://qu.ax/SYFo.jpg'
-global.img11 = 'https://qu.ax/efhn.jpg'
-global.img12 = 'https://qu.ax/Vmpl.jpg'
-global.img13 = 'https://qu.ax/ElSy.jpg'
-global.img14 = 'https://qu.ax/Tgbe.jpg'
-global.img15 = 'https://qu.ax/Puwj.jpg'
+global.img10 = img //'https://qu.ax/SYFo.jpg' 
+global.img11 = img //'https://qu.ax/efhn.jpg' 
+global.img12 = img //'https://qu.ax/Vmpl.jpg'
+global.img13 = img //'https://qu.ax/ElSy.jpg' 
+global.img14 = img //'https://qu.ax/Tgbe.jpg' 
+global.img15 = img //'https://qu.ax/Puwj.jpg' 
 
-global.img16 = 'https://qu.ax/ovkN.jpg' //+18
+global.img16 = img //'https://qu.ax/ovkN.jpg'  //+18
 
-global.img17 = 'https://qu.ax/HJdr.jpg'
-global.img18 = 'https://qu.ax/HCt.jpg'
+global.img17 = img //'https://qu.ax/HJdr.jpg' 
+global.img18 = img //'https://qu.ax/HCt.jpg' 
 
-global.logogit = 'https://qu.ax/RzKF.jpg'
+global.logogit = img //'https://qu.ax/RzKF.jpg' 
 
 global.gataVidMenu = ['https://qu.ax/AAvg.mp4', 'https://qu.ax/SeFS.mp4', 'https://qu.ax/NqZN.mp4'][Math.floor(Math.random() * 3)]
 global.gataMenu = [img, img2, img6, img7, img8, img9, img13, img14, img15, img17, img18][Math.floor(Math.random() * 11)]

@@ -391,7 +391,7 @@ let handler = async (m, {command, usedPrefix, conn}) => {
 //user.fantasy = new Date * 1  
     }
 }
-handler.command = /^(fantasy|fy)$/i
+handler.command = /^(fantasy|fy|rw|roll)$/i
 export default handler
 
 function msToTime(duration) {

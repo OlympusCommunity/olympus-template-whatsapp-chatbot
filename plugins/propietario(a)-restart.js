@@ -8,7 +8,8 @@ const handler = async (m, {conn, isROwner, text}) => {
     await delay(1000 * 1)
     await conn.sendMessage(m.chat, {text: `🚀🚀🚀🚀🚀🚀`, edit: key})
     await conn.sendMessage(m.chat, {text: `𝙍𝙚𝙞𝙣𝙞𝙘𝙞𝙖𝙧 | 𝙍𝙚𝙨𝙩𝙖𝙧𝙩`, edit: key})
-    process.send('reset')
+//process.send('reset')
+    process.exit()
 }
 handler.help = ['restart']
 handler.tags = ['owner']

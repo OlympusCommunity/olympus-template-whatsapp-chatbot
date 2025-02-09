@@ -1,6 +1,3 @@
-import chalk from 'chalk'
-import {promises as fs} from 'fs'
-import path from 'path';
 import './_content.js'
 
 let WAMessageStubType = (await import("@whiskeysockets/baileys")).default
@@ -17,19 +14,20 @@ handler.before = async function (m, {conn, participants, groupMetadata, isBotAdm
     const groupAdmins = participants.filter(p => p.admin)
     const listAdmin = groupAdmins.map((v, i) => `*» ${i + 1}. @${v.id.split('@')[0]}*`).join('\n')
 
-    if (chat.detect && m.messageStubType == 2) {
-        const uniqid = (m.isGroup ? m.chat : m.sender).split('@')[0]
-        const sessionPath = './GataBotSession/'
-        for (const file of await fs.readdir(sessionPath)) {
-            if (file.includes(uniqid)) {
-                await fs.unlink(path.join(sessionPath, file))
-                console.log(`${chalk.yellow.bold('[ ⚠️ Archivo Eliminado ]')} ${chalk.greenBright(`'${file}'`)}\n` +
-                    `${chalk.blue('(Session PreKey)')} ${chalk.redBright('que provoca el "undefined" en el chat')}`
-                )
-            }
-        }
+    /*if (chat.detect && m.messageStubType == 2) {
+    const uniqid = (m.isGroup ? m.chat : m.sender).split('@')[0]
+    const sessionPath = './GataBotSession/'
+    for (const file of await fs.readdir(sessionPath)) {
+    if (file.includes(uniqid)) {
+    await fs.unlink(path.join(sessionPath, file))
+    console.log(`${chalk.yellow.bold('[ ⚠️ Archivo Eliminado ]')} ${chalk.greenBright(`'${file}'`)}\n` +
+    `${chalk.blue('(Session PreKey)')} ${chalk.redBright('que provoca el "undefined" en el chat')}`
+    )
+    }}
 
-    } else if (chat.detect && m.messageStubType == 21) {
+    } else */
+
+    if (chat.detect && m.messageStubType == 21) {
         await this.sendMessage(m.chat, {
             text: lenguajeGB['smsAvisoAG']() + mid.smsAutodetec1(usuario, m),
             mentions: [m.sender],
