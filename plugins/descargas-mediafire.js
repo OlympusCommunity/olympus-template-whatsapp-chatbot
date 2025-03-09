@@ -6,10 +6,30 @@ let handler = async (m, {conn, args, usedPrefix, command}) => {
     if (!args[0]) throw `${lenguajeGB['smsAvisoMG']()}${mid.smsFire}`
     m.react("📥")
     try {
-        const res = await fetch(`https://api.fgmods.xyz/api/downloader/mediafire?url=${args[0]}&apikey=${fgkeysapi}`);
+        const res = await fetch(`https://api.agatz.xyz/api/mediafire?url=${args}`)
         const data = await res.json();
-        const fileData = data.result;
         const caption = `${eg}
+> ┃ 𓃠 *${gt} ${vs}* 
+> ┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+> ┃ 💫 ${mid.name}
+> ┃  ${data.data.nama}
+> ┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+> ┃ 💪 ${mid.smsYT11}
+> ┃ ${data.data.size}
+> ┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+> ┃ 🚀 ${mid.smsYT12}
+> ┃  ${data.data.mime}
+`.trim();
+        m.reply(caption);
+        conn.sendFile(m.chat, data.data.link, data.data.nama, '', m, null, {
+            mimetype: data.data.mime, asDocument: true,
+        });
+    } catch {
+        try {
+            const res = await fetch(`${global.APIs.fgmods.url}/downloader/mediafire?url=${args[0]}&apikey=${global.APIs.fgmods.key}`);
+            const data = await res.json();
+            const fileData = data.result;
+            const caption = `${eg}
 > ┃ 𓃠 *${gt} ${vs}* 
 > ┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 > ┃ 💫 ${mid.name}
@@ -21,20 +41,20 @@ let handler = async (m, {conn, args, usedPrefix, command}) => {
 > ┃ 🚀 ${mid.smsYT12}
 > ┃  ${fileData.mimetype}
 `.trim();
-        await conn.sendFile(m.chat, fileData.url, fileData.title, caption, m, null, {
-            mimetype: fileData.mimetype,
-            asDocument: true
-        });
-        m.react('✅');
-    } catch (error) {
-        try {
-            const res = await fetch(`https://api.siputzx.my.id/api/d/mediafire?url=${args[0]}`);
-            if (!res.ok) throw new Error(`Error en la API 1: ${res.statusText}`);
-            const data = await res.json();
-            if (!data.status || !data.data) return
-            const fileDataArray = data.data;
-            for (const fileData of fileDataArray) {
-                const caption = `${eg}
+            await conn.sendFile(m.chat, fileData.url, fileData.title, caption, m, null, {
+                mimetype: fileData.mimetype,
+                asDocument: true
+            });
+            m.react('✅');
+        } catch (error) {
+            try {
+                const res = await fetch(`https://api.siputzx.my.id/api/d/mediafire?url=${args[0]}`);
+                if (!res.ok) throw new Error(`Error en la API 1: ${res.statusText}`);
+                const data = await res.json();
+                if (!data.status || !data.data) return
+                const fileDataArray = data.data;
+                for (const fileData of fileDataArray) {
+                    const caption = `${eg}
 > ┃ 𓃠 *${gt} ${vs}* 
 > ┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 > ┃ 💫 ${mid.name}
@@ -45,20 +65,20 @@ let handler = async (m, {conn, args, usedPrefix, command}) => {
 > ┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 > ┃ 🚀 ${mid.smsYT12}
 > ┃  ${fileData.mime}`.trim();
-                await conn.sendFile(m.chat, fileData.link, fileData.filename, caption, m, null, {
-                    mimetype: fileData.mime,
-                    asDocument: true
-                });
-                m.react('✅');
-            }
-        } catch (error) {
-            try {
-                const res = await fetch(`${apis}/api/mediafire?url=${args[0]}`);
-                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-                const data = await res.json();
-                const fileDataArray = data.data;
-                fileDataArray.forEach((fileData) => {
-                    let caption = `${eg}
+                    await conn.sendFile(m.chat, fileData.link, fileData.filename, caption, m, null, {
+                        mimetype: fileData.mime,
+                        asDocument: true
+                    });
+                    m.react('✅');
+                }
+            } catch (error) {
+                try {
+                    const res = await fetch(`${apis}/api/mediafire?url=${args[0]}`);
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                    const data = await res.json();
+                    const fileDataArray = data.data;
+                    fileDataArray.forEach((fileData) => {
+                        let caption = `${eg}
 > ┃ 𓃠 *${gt} ${vs}* 
 > ┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 > ┃ 💫 ${mid.name}
@@ -69,17 +89,17 @@ let handler = async (m, {conn, args, usedPrefix, command}) => {
 > ┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 > ┃ 🚀 ${mid.smsYT12}
 > ┃ ${fileData.mime}`.trim()
-                    m.reply(caption);
-                    conn.sendFile(m.chat, fileData.link, fileData.filename, '', m, null, {
-                        mimetype: fileData.mime, asDocument: true,
+                        m.reply(caption);
+                        conn.sendFile(m.chat, fileData.link, fileData.filename, '', m, null, {
+                            mimetype: fileData.mime, asDocument: true,
+                        });
+                        m.react(`✅`);
                     });
-                    m.react(`✅`);
-                });
-            } catch (error) {
-                try {
-                    let res = await mediafireDl(args[0])
-                    let {name, size, date, mime, link} = res
-                    let caption = `${eg}
+                } catch (error) {
+                    try {
+                        let res = await mediafireDl(args[0])
+                        let {name, size, date, mime, link} = res
+                        let caption = `${eg}
 > ┃ 𓃠 *${gt} ${vs}* 
 > ┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 > ┃ 💫 ${mid.name}
@@ -90,28 +110,29 @@ let handler = async (m, {conn, args, usedPrefix, command}) => {
 > ┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 > ┃ 🚀 ${mid.smsYT12}
 > ┃ ${mime}`.trim()
-                    conn.reply(m.chat, caption, m, {
-                        contextInfo: {
-                            externalAdReply: {
-                                mediaUrl: null,
-                                mediaType: 1,
-                                description: null,
-                                title: wm,
-                                body: 'Super Bot WhatsApp',
-                                previewType: 0,
-                                thumbnail: gataMenu,
-                                sourceUrl: md
+                        conn.reply(m.chat, caption, m, {
+                            contextInfo: {
+                                externalAdReply: {
+                                    mediaUrl: null,
+                                    mediaType: 1,
+                                    description: null,
+                                    title: wm,
+                                    body: 'Super Bot WhatsApp',
+                                    previewType: 0,
+                                    thumbnail: gataMenu,
+                                    sourceUrl: md
+                                }
                             }
-                        }
-                    })
-                    await conn.sendFile(m.chat, link, name, '', m, null, {mimetype: mime, asDocument: true})
-                    m.react(`✅`);
-                } catch (e) {
-                    await conn.reply(m.chat, `${lenguajeGB['smsMalError3']()}#report ${lenguajeGB['smsMensError2']()} ${usedPrefix + command}\n\n${wm}`, m)
-                    console.log(`❗❗ ${lenguajeGB['smsMensError2']()} ${usedPrefix + command} ❗❗`)
-                    console.log(e)
-                    m.react(`❌️`);
-                    handler.limit = false
+                        })
+                        await conn.sendFile(m.chat, link, name, '', m, null, {mimetype: mime, asDocument: true})
+                        m.react(`✅`);
+                    } catch (e) {
+                        await conn.reply(m.chat, `${lenguajeGB['smsMalError3']()}#report ${lenguajeGB['smsMensError2']()} ${usedPrefix + command}\n\n${wm}`, m)
+                        console.log(`❗❗ ${lenguajeGB['smsMensError2']()} ${usedPrefix + command} ❗❗`)
+                        console.log(e)
+                        m.react(`❌️`);
+                        handler.limit = false
+                    }
                 }
             }
         }

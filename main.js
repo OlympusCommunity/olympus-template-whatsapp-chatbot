@@ -6,7 +6,7 @@ import path, {join} from 'path'
 import {fileURLToPath, pathToFileURL} from 'url'
 import {platform} from 'process'
 import * as ws from 'ws'
-import fs, {existsSync, readdirSync, readFileSync, statSync, unlinkSync, unwatchFile, watch, watchFile} from 'fs'
+import fs, {existsSync, readdir, readdirSync, readFileSync, stat, unlinkSync, unwatchFile, watch, watchFile} from 'fs'
 import yargs from 'yargs'
 import {spawn} from 'child_process'
 import lodash from 'lodash'
@@ -18,7 +18,7 @@ import Pino from 'pino'
 import {Boom} from '@hapi/boom'
 import {makeWASocket, protoType, serialize} from './lib/simple.js'
 import {JSONFile, Low} from 'lowdb'
-import store from './lib/store.js'
+import PQueue from 'p-queue'
 import readline from 'readline'
 import NodeCache from 'node-cache'
 import {gataJadiBot} from './plugins/jadibot-serbot.js';
@@ -48,30 +48,30 @@ global.__dirname = function dirname(pathURL) {
 global.__require = function require(dir = import.meta.url) {
     return createRequire(dir);
 };
-global.API = (name, path = '/', query = {}, apikeyqueryname) => (name in global.APIs ? global.APIs[name] : name) + path + (query || apikeyqueryname ? '?' + new URLSearchParams(Object.entries({...query, ...(apikeyqueryname ? {[apikeyqueryname]: global.APIKeys[name in global.APIs ? global.APIs[name] : name]} : {})})) : '')
+//global.API = (name, path = '/', query = {}, apikeyqueryname) => (name in global.APIs ? global.APIs[name] : name) + path + (query || apikeyqueryname ? '?' + new URLSearchParams(Object.entries({...query, ...(apikeyqueryname ? {[apikeyqueryname]: global.APIKeys[name in global.APIs ? global.APIs[name] : name]} : {})})) : '')
 global.timestamp = {start: new Date}
 const __dirname = global.__dirname(import.meta.url);
 global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse());
-global.prefix = new RegExp('^[' + (opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®&.\\-.@').replace(/[|\\{}()[\]^$+*.\-\^]/g, '\\$&') + ']')
+//global.prefix = new RegExp('^[' + (opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®&.\\-.@').replace(/[|\\{}()[\]^$+*.\-\^]/g, '\\$&') + ']')
 
 //news
-const databasePath = path.join(__dirname, 'database')
-if (!fs.existsSync(databasePath)) fs.mkdirSync(databasePath)
+const databasePath = path.join(__dirname, 'database');
+if (!fs.existsSync(databasePath)) fs.mkdirSync(databasePath);
 
-const usersPath = path.join(databasePath, 'users')
-const chatsPath = path.join(databasePath, 'chats')
-const settingsPath = path.join(databasePath, 'settings')
-const msgsPath = path.join(databasePath, 'msgs')
-const stickerPath = path.join(databasePath, 'sticker')
-const statsPath = path.join(databasePath, 'stats');
+const paths = {
+    users: path.join(databasePath, 'users'),
+    chats: path.join(databasePath, 'chats'),
+    settings: path.join(databasePath, 'settings'),
+    msgs: path.join(databasePath, 'msgs'),
+    sticker: path.join(databasePath, 'sticker'),
+    stats: path.join(databasePath, 'stats'),
+};
 
-[usersPath, chatsPath, settingsPath, msgsPath, stickerPath, statsPath].forEach((dir) => {
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir)
-})
+Object.values(paths).forEach(dir => {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+});
 
-function getFilePath(basePath, id) {
-    return path.join(basePath, `${id}.json`)
-}
+const queue = new PQueue({concurrency: 5});
 
 global.db = {
     data: {
@@ -82,92 +82,83 @@ global.db = {
         sticker: {},
         stats: {},
     },
-    READ: false,
 };
 
-global.loadDatabase = async function loadDatabase() {
-    if (global.db.READ) {
-        return new Promise((resolve) => {
-            const interval = setInterval(() => {
-                if (!global.db.READ) {
-                    clearInterval(interval);
-                    resolve(global.db.data);
-                }
-            }, 1000);
-        });
+function getFilePath(category, id) {
+    return path.join(paths[category], `${id}.json`);
+}
+
+async function readFile(category, id) {
+    const filePath = getFilePath(category, id);
+    const db = new Low(new JSONFile(filePath));
+    await db.read();
+    db.data = db.data || {};
+    return db.data;
+}
+
+async function writeFile(category, id, data) {
+    const filePath = getFilePath(category, id);
+    const db = new Low(new JSONFile(filePath));
+    await db.read();
+    db.data = {...db.data, ...data};
+    await db.write();
+}
+
+global.db.readData = async function (category, id) {
+    if (!global.db.data[category][id]) {
+        const data = await queue.add(() => readFile(category, id));
+        global.db.data[category][id] = data;
     }
-
-    global.db.READ = true;
-    try {
-        const loadFiles = async (dirPath, targetObj, ignorePatterns = []) => {
-            const files = fs.readdirSync(dirPath)
-            for (const file of files) {
-                const id = path.basename(file, '.json')
-
-                if (ignorePatterns.some(pattern => id.includes(pattern))) {
-                    continue;
-                }
-                const db = new Low(new JSONFile(getFilePath(dirPath, id)))
-                await db.read()
-                db.data = db.data || {};
-                targetObj[id] = {...targetObj[id], ...db.data}
-            }
-        };
-
-        await Promise.all([loadFiles(usersPath, global.db.data.users, ['@newsletter', 'lid', '@g.us']),
-            loadFiles(chatsPath, global.db.data.chats, ['status@broadcast']),
-            loadFiles(settingsPath, global.db.data.settings),
-            loadFiles(msgsPath, global.db.data.msgs),
-            loadFiles(stickerPath, global.db.data.sticker),
-            loadFiles(statsPath, global.db.data.stats),
-        ]);
-    } catch (error) {
-        console.error('Error loading database:', error);
-    } finally {
-        global.db.READ = false
-    }
+    return global.db.data[category][id];
 };
 
-global.db.save = async function saveDatabase() {
-    if (global.db.READ) {
-        await new Promise((resolve) => {
-            const interval = setInterval(() => {
-                if (!global.db.READ) {
-                    clearInterval(interval)
-                    resolve()
-                }
-            }, 100)
-        });
+global.db.writeData = async function (category, id, data) {
+    global.db.data[category][id] = {...global.db.data[category][id], ...data};
+    await queue.add(() => writeFile(category, id, global.db.data[category][id]));
+};
+
+global.db.loadDatabase = async function () {
+    const categories = ['users', 'chats', 'settings', 'msgs', 'sticker', 'stats'];
+    const loadPromises = [];
+
+    for (const category of categories) {
+        const files = fs.readdirSync(paths[category]);
+        for (const file of files) {
+            const id = path.basename(file, '.json');
+            if (category === 'users' && (id.includes('@newsletter') || id.includes('lid'))) continue;
+            if (category === 'chats' && id.includes('@newsletter')) continue;
+
+            loadPromises.push(
+                queue.add(() => readFile(category, id))
+                    .then(data => {
+                        global.db.data[category][id] = data;
+                    })
+                    .catch(err => console.error(`Error cargando ${category}/${id}:`, err))
+            );
+        }
     }
 
-    global.db.READ = true
-    try {
-        const saveFiles = async (dirPath, dataObj, ignorePatterns = []) => {
-            for (const [id, data] of Object.entries(dataObj)) {
-                if (ignorePatterns.some(pattern => id.includes(pattern))) {
-                    continue;
-                }
+    await Promise.all(loadPromises);
+    console.log('Base de datos cargada');
+};
 
-                const db = new Low(new JSONFile(getFilePath(dirPath, id)))
-                db.data = data
-                await db.write()
+global.db.save = async function () {
+    const categories = ['users', 'chats', 'settings', 'msgs', 'sticker', 'stats'];
+
+    for (const category of categories) {
+        for (const [id, data] of Object.entries(global.db.data[category])) {
+            if (Object.keys(data).length > 0) {
+                if (category === 'users' && (id.includes('@newsletter') || id.includes('lid'))) continue;
+                if (category === 'chats' && id.includes('@newsletter')) continue;
+
+                await queue.add(() => writeFile(category, id, data));
             }
         }
-
-        await Promise.all([saveFiles(usersPath, global.db.data.users, ['@newsletter', 'lid', '@g.us']),
-            saveFiles(chatsPath, global.db.data.chats, ['status@broadcast']),
-            saveFiles(settingsPath, global.db.data.settings),
-            saveFiles(msgsPath, global.db.data.msgs),
-            saveFiles(stickerPath, global.db.data.sticker),
-            saveFiles(statsPath, global.db.data.stats),
-        ]);
-    } catch (error) {
-        console.error('Error saving database:', error)
-    } finally {
-        global.db.READ = false
     }
-}
-loadDatabase()
+};
+
+global.db.loadDatabase().then(() => {
+}).catch(err => console.error(err));
 
 /*global.db = new Low(/https?:\/\//.test(opts['db'] || '') ? new cloudDBAdapter(opts['db']) : new JSONFile('database.json'))
 global.DATABASE = global.db; 
@@ -285,47 +276,49 @@ const filterStrings = [
     "RGVjcnlwdGVkIG1lc3NhZ2U=" // "Decrypted message"
 ]
 
+/*console.info = () => {} 
+console.debug = () => {} 
+['log', 'warn', 'error'].forEach(methodName => redefineConsoleMethod(methodName, filterStrings))
+const connectionOptions = {
+logger: pino({ level: 'silent' }),
+printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
+mobile: MethodMobile, 
+browser: opcion == '1' ? ['GataBot-MD', 'Edge', '20.0.04'] : methodCodeQR ? ['GataBot-MD', 'Edge', '20.0.04'] : ["Ubuntu", "Chrome", "20.0.04"],
+auth: {
+creds: state.creds,
+keys: makeCacheableSignalKeyStore(state.keys, Pino({ level: "fatal" }).child({ level: "fatal" })),
+},
+markOnlineOnConnect: true, 
+generateHighQualityLinkPreview: true, 
+syncFullHistory: false,
+getMessage: async (clave) => {
+let jid = jidNormalizedUser(clave.remoteJid)
+let msg = await store.loadMessage(jid, clave.id)
+return msg?.message || ""
+},
+msgRetryCounterCache, // Resolver mensajes en espera
+msgRetryCounterMap, // Determinar si se debe volver a intentar enviar un mensaje o no
+defaultQueryTimeoutMs: undefined,
+version: [2, 3000, 1015901307],
+}*/
+
 console.info = () => {
 }
 console.debug = () => {
 }
 ['log', 'warn', 'error'].forEach(methodName => redefineConsoleMethod(methodName, filterStrings))
 const connectionOptions = {
-    logger: pino({level: 'silent'}),
+    logger: pino({level: "fatal"}),
     printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
     mobile: MethodMobile,
-    browser: opcion == '1' ? ['GataBot-MD', 'Edge', '20.0.04'] : methodCodeQR ? ['GataBot-MD', 'Edge', '20.0.04'] : ["Ubuntu", "Chrome", "20.0.04"],
     auth: {
         creds: state.creds,
         keys: makeCacheableSignalKeyStore(state.keys, Pino({level: "fatal"}).child({level: "fatal"})),
     },
-    markOnlineOnConnect: true,
-    generateHighQualityLinkPreview: true,
-    syncFullHistory: false,
-    getMessage: async (clave) => {
-        let jid = jidNormalizedUser(clave.remoteJid)
-        let msg = await store.loadMessage(jid, clave.id)
-        return msg?.message || ""
-    },
-    msgRetryCounterCache, // Resolver mensajes en espera
-    msgRetryCounterMap, // Determinar si se debe volver a intentar enviar un mensaje o no
-    defaultQueryTimeoutMs: undefined,
-    version: [2, 3000, 1015901307],
-}
-
-/*console.info = () => {} 
-const connectionOptions = {
-logger: pino({ level: "fatal" }),
-printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
-mobile: MethodMobile, 
-auth: {
-creds: state.creds,
-keys: makeCacheableSignalKeyStore(state.keys, Pino({ level: "fatal" }).child({ level: "fatal" })),
-},
-browser: opcion == '1' ? ['GataBot-MD', 'Edge', '20.0.04'] : methodCodeQR ? ['GataBot-MD', 'Edge', '20.0.04'] : ["Ubuntu", "Chrome", "20.0.04"],
-version: version,
-generateHighQualityLinkPreview: true
-};*/
+    browser: opcion == '1' ? ['GataBot-MD', 'Edge', '20.0.04'] : methodCodeQR ? ['GataBot-MD', 'Edge', '20.0.04'] : ["Ubuntu", "Chrome", "20.0.04"],
+    version: version,
+    generateHighQualityLinkPreview: true
+};
 
 global.conn = makeWASocket(connectionOptions)
 
@@ -361,20 +354,12 @@ conn.well = false
 
 if (!opts['test']) {
     if (global.db) setInterval(async () => {
-        if (global.db.data) await global.db.save()
+        if (global.db.data) await global.db.save();
         if (opts['autocleartmp'] && (global.support || {}).find) (tmp = [os.tmpdir(), 'tmp', "GataJadiBot"], tmp.forEach(filename => cp.spawn('find', [filename, '-amin', '2', '-type', 'f', '-delete'])))
     }, 30 * 1000)
 }
 
 if (opts['server']) (await import('./server.js')).default(global.conn, PORT)
-
-async function getMessage(key) {
-    if (store) {
-    }
-    return {
-        conversation: 'SimpleBot',
-    }
-}
 
 //respaldo de la sesión "GataBotSession"
 const backupCreds = () => {
@@ -453,47 +438,6 @@ async function connectionUpdate(update) {
 }
 
 process.on('uncaughtException', console.error);
-//process.on('uncaughtException', (err) => {
-//console.error('Se ha cerrado la conexión:\n', err)
-//process.send('reset') })
-
-/* ------------------------------------------------*/
-/* Código reconexión de sub-bots fases beta */
-/* Echo por: https://github.com/elrebelde21 */
-
-/*async function connectSubBots() {
-const subBotDirectory = './GataJadiBot';
-if (!existsSync(subBotDirectory)) {
-console.log('No se encontraron ningun sub-bots.');
-return;
-}
-const subBotFolders = readdirSync(subBotDirectory).filter(file => 
-statSync(join(subBotDirectory, file)).isDirectory()
-);
-const botPromises = subBotFolders.map(async folder => {
-const authFile = join(subBotDirectory, folder);
-if (existsSync(join(authFile, 'creds.json'))) {
-return await connectionUpdate(authFile);
-}
-});
-const bots = await Promise.all(botPromises);
-global.conns = bots.filter(Boolean);
-console.log(chalk.bold.greenBright(`✅ TODOS LOS SUB-BOTS SE HAN INICIADO CORRECTAMENTE`))
-}
-(async () => {
-global.conns = [];
-const mainBotAuthFile = 'GataBotSession';
-try {
-const mainBot = await connectionUpdate(mainBotAuthFile);
-global.conns.push(mainBot);
-console.log(chalk.bold.greenBright(`✅ BOT PRINCIPAL INICIANDO CORRECTAMENTE`))
-await connectSubBots();
-} catch (error) {
-console.error(chalk.bold.cyanBright(`❌ OCURRIÓ UN ERROR AL INICIAR EL BOT PRINCIPAL: `, error))
-}
-})();*/
-
-/* ------------------------------------------------*/
 
 let isInit = true;
 let handler = await import('./handler.js');
@@ -549,6 +493,7 @@ global.reloadHandler = async function (restatConn) {
     isInit = false
     return true
 }
+
 /** Arranque nativo para subbots by - ReyEndymion >> https://github.com/ReyEndymion
  */
 if (global.gataJadibts) {
@@ -626,6 +571,7 @@ global.reload = async (_ev, filename) => {
         }
     }
 };
+
 Object.freeze(global.reload);
 watch(pluginFolder, global.reload);
 await global.reloadHandler();
@@ -646,10 +592,12 @@ async function _quickTest() {
                     resolve(code !== 127);
                 });
             }),
+
             new Promise((resolve) => {
                 p.on('error', (_) => resolve(false));
             })]);
     }));
+
     const [ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm, find] = test;
     const s = global.support = {ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm, find};
     Object.freeze(global.support);
@@ -664,65 +612,154 @@ function clearTmp() {
     })
 }
 
-function purgeSession() {
-    let prekey = []
-    let directorio = readdirSync("./GataBotSession")
-    let filesFolderPreKeys = directorio.filter(file => {
-        return file.startsWith('pre-key-')
-    })
-    prekey = [...prekey, ...filesFolderPreKeys]
-    filesFolderPreKeys.forEach(files => {
-        unlinkSync(`./GataBotSession/${files}`)
-    })
+async function purgeSession() {
+    const sessionDir = './GataBotSession';
+    try {
+        if (!existsSync(sessionDir)) return;
+        const files = await readdir(sessionDir);
+        const preKeys = files.filter(file => file.startsWith('pre-key-'));
+        const now = Date.now();
+        const oneHourAgo = now - (24 * 60 * 60 * 1000); //24 horas
+
+        for (const file of preKeys) {
+            const filePath = join(sessionDir, file);
+            const fileStats = await stat(filePath);
+            if (fileStats.mtimeMs < oneHourAgo) {
+                try {
+                    await unlink(filePath);
+                    console.log(chalk.green(`[🗑️] Pre-key antigua eliminada: ${file}`));
+                } catch (err) {
+//console.error(chalk.red(`[⚠] Error al eliminar pre-key antigua ${file}: ${err.message}`));
+                }
+            } else {
+                console.log(chalk.yellow(`[ℹ️] Manteniendo pre-key activa: ${file}`));
+            }
+        }
+        console.log(chalk.cyanBright(`[🔵] Sesiones no esenciales eliminadas de ${global.authFile}`));
+    } catch (err) {
+//console.error(chalk.red(`[⚠] Error al limpiar: ${err.message}`));
+    }
 }
 
-function purgeSessionSB() {
+async function purgeSessionSB() {
+    const jadibtsDir = './GataJadiBot/';
     try {
-        const listaDirectorios = readdirSync('./GataJadiBot/');
+        if (!existsSync(jadibtsDir)) return;
+        const directories = await readdir(jadibtsDir);
         let SBprekey = [];
-        listaDirectorios.forEach(directorio => {
-            if (statSync(`./GataJadiBot/${directorio}`).isDirectory()) {
-                const DSBPreKeys = readdirSync(`./GataJadiBot/${directorio}`).filter(fileInDir => {
-                    return fileInDir.startsWith('pre-key-')
-                })
-                SBprekey = [...SBprekey, ...DSBPreKeys];
-                DSBPreKeys.forEach(fileInDir => {
-                    if (fileInDir !== 'creds.json') {
-                        unlinkSync(`./GataJadiBot/${directorio}/${fileInDir}`)
+        const now = Date.now();
+        const oneHourAgo = now - (24 * 60 * 60 * 1000); //24 horas
+
+        for (const dir of directories) {
+            const dirPath = join(jadibtsDir, dir);
+            const stats = await stat(dirPath);
+            if (stats.isDirectory()) {
+                const files = await readdir(dirPath);
+                const preKeys = files.filter(file => file.startsWith('pre-key-') && file !== 'creds.json');
+                SBprekey = [...SBprekey, ...preKeys];
+                for (const file of preKeys) {
+                    const filePath = join(dirPath, file);
+                    const fileStats = await stat(filePath);
+                    if (fileStats.mtimeMs < oneHourAgo) {
+                        try {
+                            await unlink(filePath);
+                            console.log(chalk.bold.green(`${lenguajeGB.smspurgeOldFiles1()} ${file} ${lenguajeGB.smspurgeOldFiles2()}`))
+                        } catch (err) {
+//console.error(chalk.red(`[⚠] Error al eliminar pre-key antigua ${file} en ${dir}: ${err.message}`));
+                        }
+                    } else {
+//console.log(chalk.yellow(`[ℹ️] Manteniendo pre-key activa en sub-bot ${dir}: ${file}`));
                     }
-                })
+                }
             }
-        })
+        }
         if (SBprekey.length === 0) {
             console.log(chalk.bold.green(lenguajeGB.smspurgeSessionSB1()))
         } else {
-            console.log(chalk.bold.cyanBright(lenguajeGB.smspurgeSessionSB2()))
+            console.log(chalk.cyanBright(`[🔵] Pre-keys antiguas eliminadas de sub-bots: ${SBprekey.length}`));
         }
     } catch (err) {
         console.log(chalk.bold.red(lenguajeGB.smspurgeSessionSB3() + err))
     }
 }
 
-function purgeOldFiles() {
-    const directories = ['./GataBotSession/', './GataJadiBot/']
-    directories.forEach(dir => {
-        readdirSync(dir, (err, files) => {
-            if (err) throw err
-            files.forEach(file => {
+async function purgeOldFiles() {
+    const directories = ['./GataBotSession/', './GataJadiBot/'];
+    for (const dir of directories) {
+        try {
+            if (!fs.existsSync(dir)) {
+                console.log(chalk.yellow(`[⚠] Carpeta no existe: ${dir}`));
+                continue;
+            }
+            const files = await fsPromises.readdir(dir);
+            for (const file of files) {
                 if (file !== 'creds.json') {
-                    const filePath = path.join(dir, file);
-                    unlinkSync(filePath, err => {
-                        if (err) {
-                            console.log(chalk.bold.red(`${lenguajeGB.smspurgeOldFiles3()} ${file} ${lenguajeGB.smspurgeOldFiles4()}` + err))
-                        } else {
-                            console.log(chalk.bold.green(`${lenguajeGB.smspurgeOldFiles1()} ${file} ${lenguajeGB.smspurgeOldFiles2()}`))
-                        }
-                    })
+                    const filePath = join(dir, file);
+                    try {
+                        await fsPromises.unlink(filePath);
+//console.log(chalk.green(`[🗑️] Archivo residual eliminado: ${file} en ${dir}`));
+                    } catch (err) {
+//console.error(chalk.red(`[⚠] Error al eliminar ${file} en ${dir}: ${err.message}`));
+                    }
                 }
-            })
-        })
-    })
+            }
+        } catch (err) {
+//console.error(chalk.red(`[⚠] Error al limpiar ${dir}: ${err.message}`));
+        }
+    }
+//console.log(chalk.cyanBright(`[🟠] Archivos residuales eliminados de ${directories.join(', ')}`));
 }
+
+/*function purgeSession() {
+let prekey = []
+let directorio = readdirSync("./GataBotSession")
+let filesFolderPreKeys = directorio.filter(file => {
+return file.startsWith('pre-key-')
+})
+prekey = [...prekey, ...filesFolderPreKeys]
+filesFolderPreKeys.forEach(files => {
+unlinkSync(`./GataBotSession/${files}`)
+})
+} 
+
+function purgeSessionSB() {
+try {
+const listaDirectorios = readdirSync('./GataJadiBot/');
+let SBprekey = [];
+listaDirectorios.forEach(directorio => {
+if (statSync(`./GataJadiBot/${directorio}`).isDirectory()) {
+const DSBPreKeys = readdirSync(`./GataJadiBot/${directorio}`).filter(fileInDir => {
+return fileInDir.startsWith('pre-key-')
+})
+SBprekey = [...SBprekey, ...DSBPreKeys];
+DSBPreKeys.forEach(fileInDir => {
+if (fileInDir !== 'creds.json') {
+unlinkSync(`./GataJadiBot/${directorio}/${fileInDir}`)
+}})
+}})
+if (SBprekey.length === 0) {
+console.log(chalk.bold.green(lenguajeGB.smspurgeSessionSB1()))
+} else {
+console.log(chalk.bold.cyanBright(lenguajeGB.smspurgeSessionSB2()))
+}} catch (err) {
+console.log(chalk.bold.red(lenguajeGB.smspurgeSessionSB3() + err))
+}}
+function purgeOldFiles() {
+const directories = ['./GataBotSession/', './GataJadiBot/']
+directories.forEach(dir => {
+readdirSync(dir, (err, files) => {
+if (err) throw err
+files.forEach(file => {
+if (file !== 'creds.json') {
+const filePath = path.join(dir, file);
+unlinkSync(filePath, err => {
+if (err) {
+console.log(chalk.bold.red(`${lenguajeGB.smspurgeOldFiles3()} ${file} ${lenguajeGB.smspurgeOldFiles4()}` + err))
+} else {
+console.log(chalk.bold.green(`${lenguajeGB.smspurgeOldFiles1()} ${file} ${lenguajeGB.smspurgeOldFiles2()}`))
+} }) }
+}) }) }) }*/
+
 
 function redefineConsoleMethod(methodName, filterStrings) {
     const originalConsoleMethod = console[methodName]
@@ -739,7 +776,7 @@ setInterval(async () => {
     if (stopped === 'close' || !conn || !conn.user) return
     await clearTmp()
     console.log(chalk.bold.cyanBright(lenguajeGB.smsClearTmp()))
-}, 1000 * 60 * 4) // 4 min
+}, 1000 * 60 * 3) //3 min
 
 setInterval(async () => {
     if (stopped === 'close' || !conn || !conn.user) return

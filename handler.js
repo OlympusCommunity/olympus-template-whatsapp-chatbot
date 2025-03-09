@@ -3,7 +3,7 @@ import {smsg} from './lib/simple.js'
 import {format} from 'util'
 import {fileURLToPath} from 'url'
 import path, {join} from 'path'
-import fs, {unwatchFile, watchFile} from 'fs'
+import {unwatchFile, watchFile} from 'fs'
 import chalk from 'chalk'
 import './plugins/_content.js'
 
@@ -100,6 +100,7 @@ export async function handler(chatUpdate) {
                 if (!('role' in user)) user.role = '*NOVATO(A)* 🪤'
                 if (!isNumber(user.agility)) user.agility = 0
                 if (!isNumber(user.anakanjing)) user.anakanjing = 0
+                if (!user.warnPv) user.warnPv = false
                 if (!isNumber(user.mesagge)) user.anakanjing = 0
                 if (!isNumber(user.anakcentaur)) user.anakcentaur = 0
                 if (!isNumber(user.anakgriffin)) user.anakgriffin = 0
@@ -533,6 +534,7 @@ export async function handler(chatUpdate) {
                     anakgriffin: 0,
                     anakkucing: 0,
                     anakkuda: 0,
+                    warnPv: false,
                     anakkyubi: 0,
                     anaknaga: 0,
                     anakpancingan: 0,
@@ -971,13 +973,7 @@ export async function handler(chatUpdate) {
                 if (!('sBye' in chat)) chat.sBye = ''
                 if (!('sPromote' in chat)) chat.sPromote = ''
                 if (!('sDemote' in chat)) chat.sDemote = ''
-                if (!('sCondition' in chat)) chat.sCondition = JSON.stringify([{
-                    grupo: {
-                        usuario: [],
-                        condicion: [],
-                        admin: ''
-                    }, prefijos: []
-                }])
+                if (!('sCondition' in chat)) chat.sCondition = ''
                 if (!('sAutorespond' in chat)) chat.sAutorespond = ''
                 if (!('delete' in chat)) chat.delete = false
                 if (!('modohorny' in chat)) chat.modohorny = true
@@ -1024,7 +1020,7 @@ export async function handler(chatUpdate) {
                     sBye: '',
                     sPromote: '',
                     sDemote: '',
-                    sCondition: JSON.stringify([{grupo: {usuario: [], condicion: [], admin: ''}, prefijos: []}]),
+                    sCondition: '',
                     sAutorespond: '',
                     delete: false,
                     modohorny: true,
@@ -1075,6 +1071,7 @@ export async function handler(chatUpdate) {
                 if (!('antiSpam' in settings)) settings.antiSpam = true
                 if (!('modoia' in settings)) settings.modoia = false
                 if (!('jadibotmd' in settings)) settings.jadibotmd = true
+                if (!('prefix' in settings)) settings.prefix = opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®&.\\-.@';
             } else global.db.data.settings[this.user.jid] = {
                 self: false,
                 autoread: false,
@@ -1086,13 +1083,16 @@ export async function handler(chatUpdate) {
                 antiSpam: true,
                 modoia: false,
                 anticommand: false,
+                prefix: opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®&.\\-.@',
                 jadibotmd: true,
             }
         } catch (e) {
             console.error(e)
         }
 
-        const isROwner = [conn.decodeJid(global.conn.user.id), ...global.owner.map(([number]) => number)].map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender)
+        var settings = global.db.data.settings[this.user.jid]
+        const prefix = new RegExp('^[' + settings.prefix.replace(/[|\\{}()[\]^$+*.\-\^]/g, '\\$&') + ']');
+        const isROwner = [...global.owner.map(([number]) => number)].map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender)
         const isOwner = isROwner || m.fromMe
         const isMods = isOwner || global.mods.map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender)
 //const isPrems = isROwner || global.prems.map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender)
@@ -1108,7 +1108,7 @@ export async function handler(chatUpdate) {
             }, time)
         }
 
-        if ((m.id.startsWith('NJX-') || (m.id.startsWith('BAE5') && m.id.length === 16) || (m.id.startsWith('B24E') && m.id.length === 20))) return
+        if ((m.id.startsWith('NJX-') || (m.id.startsWith('BAE5') && m.id.length === 16) || (m.id.startsWith('B24E') && m.id.length === 20) || m.id.startsWith('FizzxyTheGreat-') || m.id.startsWith('Lyru-'))) return
 
         if (opts['nyimak']) return
         if (!isROwner && opts['self']) return
@@ -1162,21 +1162,19 @@ export async function handler(chatUpdate) {
 // global.dfail('restrict', m, this)
                     continue
                 }
-            const str2Regex = str => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
-            let _prefix = plugin.customPrefix ? plugin.customPrefix : conn.prefix ? conn.prefix : global.prefix
-            let match = (_prefix instanceof RegExp ? // RegExp Mode?
+            const str2Regex = str => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
+            let _prefix = plugin.customPrefix ? plugin.customPrefix : this.prefix ? this.prefix : prefix; // Usamos prefix local
+            let match = (_prefix instanceof RegExp ?
                     [[_prefix.exec(m.text), _prefix]] :
-                    Array.isArray(_prefix) ? // Array?
+                    Array.isArray(_prefix) ?
                         _prefix.map(p => {
-                            let re = p instanceof RegExp ? // RegExp in Array?
-                                p :
-                                new RegExp(str2Regex(p))
-                            return [re.exec(m.text), re]
+                            let re = p instanceof RegExp ? p : new RegExp(str2Regex(p));
+                            return [re.exec(m.text), re];
                         }) :
-                        typeof _prefix === 'string' ? // String?
+                        typeof _prefix === 'string' ?
                             [[new RegExp(str2Regex(_prefix)).exec(m.text), new RegExp(str2Regex(_prefix))]] :
                             [[[], new RegExp]]
-            ).find(p => p[1])
+            ).find(p => p[1]);
             if (typeof plugin.before === 'function') {
                 if (await plugin.before.call(this, m, {
                     match,
@@ -1194,33 +1192,27 @@ export async function handler(chatUpdate) {
                     chatUpdate,
                     __dirname: ___dirname,
                     __filename
-                }))
-                    continue
+                })) continue;
             }
-            if (typeof plugin !== 'function')
-                continue
+            if (typeof plugin !== 'function') continue;
             if ((usedPrefix = (match[0] || '')[0])) {
-                let noPrefix = m.text.replace(usedPrefix, '')
-                let [command, ...args] = noPrefix.trim().split` `.filter(v => v)
-                args = args || []
-                let _args = noPrefix.trim().split` `.slice(1)
-                let text = _args.join` `
-                command = (command || '').toLowerCase()
-                let fail = plugin.fail || global.dfail // When failed
-                let isAccept = plugin.command instanceof RegExp ? // RegExp Mode?
+                let noPrefix = m.text.replace(usedPrefix, '');
+                let [command, ...args] = noPrefix.trim().split` `.filter(v => v);
+                args = args || [];
+                let _args = noPrefix.trim().split` `.slice(1);
+                let text = _args.join` `;
+                command = (command || '').toLowerCase();
+                let fail = plugin.fail || global.dfail;
+                let isAccept = plugin.command instanceof RegExp ?
                     plugin.command.test(command) :
-                    Array.isArray(plugin.command) ? // Array?
-                        plugin.command.some(cmd => cmd instanceof RegExp ? // RegExp in Array?
-                            cmd.test(command) :
-                            cmd === command
-                        ) :
-                        typeof plugin.command === 'string' ? // String?
+                    Array.isArray(plugin.command) ?
+                        plugin.command.some(cmd => cmd instanceof RegExp ? cmd.test(command) : cmd === command) :
+                        typeof plugin.command === 'string' ?
                             plugin.command === command :
-                            false
+                            false;
 
-                if (!isAccept)
-                    continue
-                m.plugin = name
+                if (!isAccept) continue;
+                m.plugin = name;
                 if (m.chat in global.db.data.chats || m.sender in global.db.data.users) {
                     let chat = global.db.data.chats[m.chat]
                     let user = global.db.data.users[m.sender]
@@ -1379,9 +1371,15 @@ export async function handler(chatUpdate) {
                     m.error = e
                     console.error(e)
                     if (e) {
+                        let text = format(e) || 'Error desconocido';
+                        for (let api in global.APIs) {
+                            let key = global.APIs[api].key;
+                            if (key) text = text.replace(new RegExp(key, 'g'), '#HIDDEN#');
+                        }
+                        /*if (e) {
                         let text = format(e)
                         for (let key of Object.values(global.APIKeys))
-                            text = text.replace(new RegExp(key, 'g'), '#HIDDEN#')
+                        text = text.replace(new RegExp(key, 'g'), '#HIDDEN#')*/
                         if (e.name)
                             for (let [jid] of global.owner.filter(([number, _, isDeveloper]) => isDeveloper && number)) {
                                 let data = (await conn.onWhatsApp(jid))[0] || {}
@@ -1519,27 +1517,24 @@ export async function participantsUpdate({id, participants, action}) {
                             (chat.sBye || this.bye || conn.bye || 'Bye, @user!')).replace('@user', '@' + user.split('@')[0])
 
                         if (chat.antifake && isBotAdminNn && action === 'add') {
-                            const prefijosPredeterminados = [1, 2, 4, 6, 7, 8, 9] // Puedes editar que usuarios deseas que se eliminen si empieza por algunos de los números
-                            const rutaArchivo = './prefijos.json'
-                            let prefijos = []
-                            const existeArchivo = fs.existsSync(rutaArchivo)
-                            if (existeArchivo) {
-                                try {
-                                    const contenido = fs.readFileSync(rutaArchivo, 'utf-8')
-                                    prefijos = JSON.parse(contenido)
-                                } catch (error) {
-                                    console.log('Error "prefijos.json": ', error)
-                                    return
-                                }
-                            } else {
-                                prefijos = prefijosPredeterminados
-                            }
-                            const comienzaConPrefijo = prefijos.some(prefijo => user.startsWith(prefijo.toString()))
+                            const prefijosPredeterminados = [2, 4, 6, 7, 8, 9] // Puedes personalizar los prefijos de los usuarios que deseas eliminar, especificando los que deben ser bloqueados si el número empieza con alguno de ellos.
+                            let prefijos = (Array.isArray(chat.sCondition) && chat.sCondition.length > 0) || chat.sCondition !== "" ? chat.sCondition : prefijosPredeterminados
+                            const comienzaConPrefijo = prefijos.some(prefijo => user.startsWith(`+${prefijo}`))
                             if (comienzaConPrefijo) {
                                 let texto = mid.mAdvertencia + mid.mFake2(user)
                                 await conn.sendMessage(id, {text: texto, mentions: [user]})
-                                let responseb = await conn.groupParticipantsUpdate(id, [user], 'remove')
-                                if (responseb[0].status === "404") return
+                                if (m.key.participant && m.key.id) {
+                                    await conn.sendMessage(id, {
+                                        delete: {
+                                            remoteJid: m.chat,
+                                            fromMe: false,
+                                            id: m.key.id,
+                                            participant: m.key.participant
+                                        }
+                                    })
+                                }
+//let responseb = await conn.groupParticipantsUpdate(id, [user], 'remove')
+//if (responseb[0].status === "404") return
                             }
                         }
 
@@ -1608,7 +1603,7 @@ export async function groupsUpdate(groupsUpdate) {
 // if (groupUpdate.desc) text = (chats.sDesc || this.sDesc || conn.sDesc || '```Description has been changed to```\n@desc').replace('@desc', groupUpdate.desc)
 //if (groupUpdate.subject) text = (chats.sSubject || this.sSubject || conn.sSubject || '```Subject has been changed to```\n@subject').replace('@subject', groupUpdate.subject)
 //if (groupUpdate.icon) text = (chats.sIcon || this.sIcon || conn.sIcon || '```Icon has been changed to```').replace('@icon', groupUpdate.icon)
-        if (groupUpdate.revoke) text = (chats.sRevoke || this.sRevoke || conn.sRevoke || '```Group link has been changed to```\n@revoke').replace('@revoke', groupUpdate.revoke)
+//if (groupUpdate.revoke) text = (chats.sRevoke || this.sRevoke || conn.sRevoke || '```Group link has been changed to```\n@revoke').replace('@revoke', groupUpdate.revoke)
         if (!text) continue
         await this.sendMessage(id, {text, mentions: this.parseMention(text)})
     }

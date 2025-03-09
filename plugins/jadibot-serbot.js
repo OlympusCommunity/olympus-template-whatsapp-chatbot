@@ -61,6 +61,7 @@ let handler = async (m, {conn, args, usedPrefix, command, isOwner}) => {
     gataJBOptions.args = args
     gataJBOptions.usedPrefix = usedPrefix
     gataJBOptions.command = command
+    gataJBOptions.fromCommand = true
     gataJadiBot(gataJBOptions)
 }
 handler.command = /^(jadibot|serbot|rentbot|code)/i
@@ -102,25 +103,33 @@ export async function gataJadiBot(options) {
         const {state, saveState, saveCreds} = await useMultiFileAuthState(pathGataJadiBot)
 
         const connectionOptions = {
+            logger: pino({level: "fatal"}),
             printQRInTerminal: false,
-            logger: pino({level: 'silent'}),
             auth: {creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'}))},
             msgRetry,
             msgRetryCache,
-            version: [2, 3000, 1015901307],
-            syncFullHistory: true,
             browser: mcode ? ['Ubuntu', 'Chrome', '110.0.5585.95'] : ['GataBot-MD (Sub Bot)', 'Chrome', '2.0.0'],
-            defaultQueryTimeoutMs: undefined,
-            getMessage: async (key) => {
-                if (store) {
-//const msg = store.loadMessage(key.remoteJid, key.id)
-//return msg.message && undefined
-                }
-                return {
-                    conversation: 'GataBot-MD',
-                }
-            }
-        }
+            version: version,
+            generateHighQualityLinkPreview: true
+        };
+
+        /*const connectionOptions = {
+        printQRInTerminal: false,
+        logger: pino({ level: 'silent' }),
+        auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level: 'silent'})) },
+        msgRetry,
+        msgRetryCache,
+        version: [2, 3000, 1015901307],
+        syncFullHistory: true,
+        browser: mcode ? ['Ubuntu', 'Chrome', '110.0.5585.95'] : ['GataBot-MD (Sub Bot)', 'Chrome','2.0.0'],
+        defaultQueryTimeoutMs: undefined,
+        getMessage: async (key) => {
+        if (store) {
+        //const msg = store.loadMessage(key.remoteJid, key.id)
+        //return msg.message && undefined
+        } return {
+        conversation: 'GataBot-MD',
+        }}} */
 
         let sock = makeWASocket(connectionOptions)
         sock.isInit = false
@@ -206,7 +215,7 @@ export async function gataJadiBot(options) {
                 if (reason === 440) {
                     console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La conexión (+${path.basename(pathGataJadiBot)}) fue reemplazada por otra sesión activa.\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
                     try {
-                        await conn.sendMessage(`${path.basename(pathGataJadiBot)}@s.whatsapp.net`, {text: '*HEMOS DETECTADO UNA NUEVA SESIÓN, BORRE LA NUEVA SESIÓN PARA CONTINUAR*\n\n> *SI HAY ALGÚN PROBLEMA VUELVA A CONECTARSE*'}, {quoted: null})
+                        if (options.fromCommand) m?.chat ? await conn.sendMessage(`${path.basename(pathGataJadiBot)}@s.whatsapp.net`, {text: '*HEMOS DETECTADO UNA NUEVA SESIÓN, BORRE LA NUEVA SESIÓN PARA CONTINUAR*\n\n> *SI HAY ALGÚN PROBLEMA VUELVA A CONECTARSE*'}, {quoted: m || null}) : ""
                     } catch (error) {
                         console.error(chalk.bold.yellow(`Error 440 no se pudo enviar mensaje a: +${path.basename(pathGataJadiBot)}`))
                     }
@@ -214,7 +223,7 @@ export async function gataJadiBot(options) {
                 if (reason == 405 || reason == 401) {
                     console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ La sesión (+${path.basename(pathGataJadiBot)}) fue cerrada. Credenciales no válidas o dispositivo desconectado manualmente.\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
                     try {
-                        await conn.sendMessage(`${path.basename(pathGataJadiBot)}@s.whatsapp.net`, {text: '*🟢 SESIÓN PENDIENTE*\n\n> *INTENTÉ MANUALMENTE VOLVER A SER SUB-BOT, USANDO EL COMANDOS:* /jadibot'}, {quoted: null}) || ''
+                        if (options.fromCommand) m?.chat ? await conn.sendMessage(`${path.basename(pathGataJadiBot)}@s.whatsapp.net`, {text: '*🟢 SESIÓN PENDIENTE*\n\n> *INTENTÉ MANUALMENTE VOLVER A SER SUB-BOT, USANDO EL COMANDOS:* /jadibot'}, {quoted: m || null}) : ""
                     } catch (error) {
                         console.error(chalk.bold.yellow(`Error 405 no se pudo enviar mensaje a: +${path.basename(pathGataJadiBot)}`))
                     }
@@ -222,8 +231,10 @@ export async function gataJadiBot(options) {
                 }
                 if (reason === 500) {
                     console.log(chalk.bold.magentaBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Conexión perdida en la sesión (+${path.basename(pathGataJadiBot)}). Borrando datos...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
-                    await conn.sendMessage(`${path.basename(pathGataJadiBot)}@s.whatsapp.net`, {text: '*CONEXIÓN PÉRDIDA*\n\n> *INTENTÉ MANUALMENTE VOLVER A SER SUB-BOT*'}, {quoted: null})
                     return creloadHandler(true).catch(console.error)
+                    if (options.fromCommand) {
+                        m?.chat ? await conn.sendMessage(m.chat, {text: '*CONEXIÓN PÉRDIDA*\n\n> *INTENTÉ MANUALMENTE VOLVER A SER SUB-BOT*'}, {quoted: m || null}) : ""
+                    }
 //fs.rmdirSync(pathGataJadiBot, { recursive: true })
                 }
                 if (reason === 515) {
@@ -235,6 +246,7 @@ export async function gataJadiBot(options) {
                     fs.rmdirSync(pathGataJadiBot, {recursive: true})
                 }
             }
+
             if (global.db.data == null) loadDatabase()
             if (connection == `open`) {
                 if (!global.db.data?.users) loadDatabase()
@@ -389,3 +401,50 @@ async function joinChannels(conn) {
         })
     }
 }
+
+async function checkSubBots() {
+    const subBotDir = path.resolve("./GataJadiBot")
+    console.log(chalk.bold.blueBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Revisando ruta: ${subBotDir}\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+
+    if (!fs.existsSync(subBotDir)) return
+    const subBotFolders = fs.readdirSync(subBotDir).filter(folder =>
+        fs.statSync(path.join(subBotDir, folder)).isDirectory()
+    )
+
+    for (const folder of subBotFolders) {
+        const pathGataJadiBot = path.join(subBotDir, folder)
+        const credsPath = path.join(pathGataJadiBot, "creds.json")
+
+        if (!fs.existsSync(credsPath)) {
+            console.log(chalk.bold.yellowBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Sub-bot (+${folder}) no tiene creds.json. Omitiendo...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+            continue
+        }
+
+        const subBot = global.conns.find(conn =>
+            conn.user?.jid?.includes(folder) || path.basename(pathGataJadiBot) === folder)
+
+        if (!subBot || !subBot.user) {
+            console.log(chalk.bold.yellowBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Sub-bot (+${folder}) no está conectado o fue añadido recientemente. Intentando activarlo...\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+
+            try {
+                const options = {
+                    pathGataJadiBot,
+                    m: null,
+                    conn: global.conn,
+                    args: [],
+                    usedPrefix: '#',
+                    command: 'jadibot',
+                    fromCommand: false
+                }
+                await gataJadiBot(options)
+                console.log(chalk.bold.greenBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Sub-bot (+${folder}) iniciado exitosamente.\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+            } catch (e) {
+                console.error(chalk.redBright(`Error al intentar activar sub-bot (+${folder}):`), e)
+            }
+        } else {
+            console.log(chalk.bold.cyanBright(`\n╭┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡\n┆ Sub-bot (+${folder}) ya está conectado.\n╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄ • • • ┄┄┄┄┄┄┄┄┄┄┄┄┄┄⟡`))
+        }
+    }
+}
+
+setInterval(checkSubBots, 4500000) //15min

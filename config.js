@@ -17,7 +17,8 @@ global.owner = [
     ["51904264739"],
     ["51904354571"],
     ["14188009171"],
-    ["5491122602148"]]
+    ["5491122602148"]
+]
 
 global.mods = []
 global.prems = []
@@ -63,54 +64,23 @@ global.version_language = '1.0 (MID-GB)'
 
 // • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • •
 // ❰❰ API KEYS ❱❱
-global.Key360 = ["Gata_Dios"] // key Ephoto360
-global.openai_key = 'sk-0' // Api New: https://platform.openai.com/account/api-keys 
-global.openai_org_id = 'org-3' // Api New: https://platform.openai.com/account/org-settings */
-global.keysZens = ["LuOlangNgentot", "c2459db922", "37CC845916", "6fb0eff124", "hdiiofficial", "fiktod", "BF39D349845E", "675e34de8a", "0b917b905e6f"]
-global.keysxxx = keysZens[Math.floor(keysZens.length * Math.random())]
-global.keysxteammm = ["29d4b59a4aa687ca", "5LTV57azwaid7dXfz5fzJu", "cb15ed422c71a2fb", "5bd33b276d41d6b4", "HIRO", "kurrxd09", "ebb6251cc00f9c63"]
-global.keysxteam = keysxteammm[Math.floor(keysxteammm.length * Math.random())]
-global.keysneoxrrr = ["5VC9rvNx", "cfALv5"]
-global.keysneoxr = keysneoxrrr[Math.floor(keysneoxrrr.length * Math.random())]
-global.lolkeysapi = "GataDiosV3"
-global.fgkeysapi = "elrebelde21"
-global.itsrose = ["4b146102c4d500809da9d1ff"]
 global.baileys = "@whiskeysockets/baileys"
 global.apis = 'https://delirius-apiofc.vercel.app'
 
 global.APIs = {
-    nrtm: 'https://fg-nrtm.ddns.net',
-    fgmods: 'https://api.fgmods.xyz',
-    caliphdev: 'https://brat.caliphdev.com',
-    xteam: 'https://api.xteam.xyz',
-    dzx: 'https://api.dhamzxploit.my.id',
-    lol: 'https://api.lolhuman.xyz',
-    violetics: 'https://violetics.pw',
-    neoxr: 'https://api.neoxr.my.id',
-    zenzapis: 'https://api.zahwazein.xyz',
-    akuari: 'https://api.akuari.my.id',
-    akuari2: 'https://apimu.my.id',
-    botcahx: 'https://api.botcahx.biz.id',
-    ibeng: 'https://api.ibeng.tech/docs',
-    rose: 'https://api.itsrose.site',
-    popcat: 'https://api.popcat.xyz',
-    xcoders: 'https://api-xcoders.site'
-},
-
-    global.APIKeys = {
-        'https://api.fgmods.xyz': `${fgkeysapi}`,
-        'https://api.xteam.xyz': `${keysxteam}`,
-        'https://api.lolhuman.xyz': `${lolkeysapi}`,
-        'https://api.neoxr.my.id': `${keysneoxr}`,
-        'https://violetics.pw': 'beta',
-        'https://api.zahwazein.xyz': `${keysxxx}`,
-        'https://api.fgmods.xyz': 'DRLg5kY7',
-        'https://api-fgmods.ddns.net': 'fg-dylux',
-        'https://api.botcahx.biz.id': 'Admin',
-        'https://api.ibeng.tech/docs': 'tamvan',
-        'https://api.itsrose.site': 'Rs-Zeltoria',
-        'https://api-xcoders.site': 'Frieren'
-    }
+    lolhuman: {url: 'https://api.lolhuman.xyz/api', key: 'GataDiosV3'},
+    skizo: {url: 'https://skizo.tech/api', key: 'GataDios'},
+    alyachan: {url: 'https://api.alyachan.dev/api', key: null},
+    exonity: {url: 'https://exonity.tech/api', key: 'GataDios'},
+    ryzendesu: {url: 'https://api.ryzendesu.vip/api', key: null},
+    neoxr: {url: 'https://api.neoxr.eu/api', key: 'GataDios'},
+    davidcyriltech: {url: 'https://api.davidcyriltech.my.id', key: null},
+    dorratz: {url: 'https://api.dorratz.com', key: null},
+    siputzx: {url: 'https://api.siputzx.my.id/api', key: null},
+    vreden: {url: 'https://api.vreden.web.id/api', key: null},
+    fgmods: {url: 'https://api.fgmods.xyz/api', key: 'elrebelde21'},
+    popcat: {url: 'https://api.popcat.xyz', key: null}
+}
 // • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • •
 
 // • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • •
@@ -131,7 +101,9 @@ global.official = [ // Agregate si eres Owner
     ["51904264739", 'Amadeus System', 1],
     ["51904354571", 'Olympus Platform', 1],
     ["14188009171", 'AI Security Agent', 1],
-    ["5491122602148", 'Lynx CTSM', 1]]
+    ["5491122602148", 'Lynx CTSM', 1]
+]
+
 
 global.mail = '' // Add email
 global.desc = '' // Add short description (20 caractres max)
@@ -551,6 +523,9 @@ global.ch = {
     ch10: '120363323882134704@newsletter',
     ch11: '120363370415738881@newsletter',
     ch12: '120363385983031660@newsletter',
+    ch13: '120363343811229130@newsletter',
+    ch14: '120363305941657414@newsletter',
+    ch15: '120363263466636910@newsletter',
 }
 // • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • •
 
@@ -576,8 +551,8 @@ global.canal3 = 'https://whatsapp.com/channel/0029VaKn22pDJ6GwY61Ftn15'
 global.canal4 = 'https://t.me/globalgb'
 
 global.soporteGB = "https://chat.whatsapp.com/GQ82mPnSYnm0XL2hLPk7FV"
-global.grupo1 = "https://chat.whatsapp.com/KNwcGS4PCEN5qjbHD5VDZM"
-global.grupo2 = "https://chat.whatsapp.com/LfcjmLcYax431QXBO0CSPk"
+global.grupo1 = "https://chat.whatsapp.com/JRG6rVJJV40IxlI1wjQ0E9"
+global.grupo2 = "https://chat.whatsapp.com/B5s3ohjEGofH5YDD05jAV5"
 global.grupo_collab1 = "https://chat.whatsapp.com/IO5k0UOF7hOJHE1eH3Fcxh"
 global.grupo_collab2 = "https://chat.whatsapp.com/GFsgXW2VD4I4FEOSlEg9wp"
 global.grupo_collab3 = "https://chat.whatsapp.com/H1TEBeMtFVv3RcayD1WfGU"

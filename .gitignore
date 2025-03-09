@@ -1,10 +1,14 @@
+#Files
 terms.md
 dealers.md
-node_modules/
 package-lock.json
 yarn.lock
 database.json
-GataBotSession/
-GataJadiBot/
+
+#Directories
 .idea/
 .vscode/
+node_modules/
+GataBotSession/
+GataJadiBot/
+database/
