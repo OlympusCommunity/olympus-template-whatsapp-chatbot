@@ -1,74 +1,95 @@
-/**
- POR FAVOR TENGAN LA AMABILIDAD Y BONDAD DE NO CAMBIAR MÍNIMAMENTE LOS CRÉDITOS DE GATABOT-MD,
- SI VAS A AÑADIR TUS DATOS O CRÉDITOS, ESTA BIEN. PERO NO QUITEN LOS QUE YA ESTAN DE GATABOT-MD, GRACIAS
- **/
+import fs from "fs";
+import {performance} from "perf_hooks";
 
-/** PLEASE BE KIND AND KINDNESS NOT TO MINIMALLY CHANGE GATABOT-MD CREDITS,
- IF YOU ARE GOING TO ADD YOUR DATA OR CREDITS, IT'S OK. BUT DO NOT REMOVE THOSE THAT ARE ALREADY FROM GATABOT-MD, THANK YOU **/
-let handler = async (m, {conn, command, usedPrefix}) => {
-    let pp = gataMenu
-    let name = await conn.getName(m.sender)
-    let _uptime = process.uptime() * 1000
-    let _muptime
-    if (process.send) {
-        process.send('uptime')
-        _muptime = await new Promise(resolve => {
-            process.once('message', resolve)
-            setTimeout(resolve, 1000)
-        }) * 1000
-    }
-    let uptime = clockString(_uptime)
-    let estado = `╭━━━━[ *𝙀𝙎𝙏𝘼𝘿𝙊 | 𝙎𝙏𝘼𝙏𝙐𝙎* ]━━━━━⬣
-┃💗 *¡Hola | Hi!* ${name}
-┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-┃𓃠 *Versión de ${gt}*
-┃➥ ${vs}
-┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-┃✿ 𝗖𝗥𝗘𝗔𝗗𝗢𝗥𝗔 | 𝗖𝗥𝗘𝗔𝗧𝗢𝗥
-┃ღ 𝙂𝙖𝙩𝙖 𝘿𝙞𝙤𝙨
-┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-┃✿ 𝗖𝗢𝗡𝗧𝗔𝗖𝗧𝗢 | 𝗖𝗢𝗡𝗧𝗔𝗖𝗧
-┃➥ *${ig}*
-┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-┃ღ ${global.opts['self'] ? '𝙋𝙍𝙄𝙑𝘼𝘿𝙊 - 𝙋𝙍𝙄𝙑𝘼𝙏𝙀' : '𝙋𝙐𝘽𝙇𝙄𝘾𝙊 - 𝙋𝙐𝘽𝙇𝙄𝘾'}
-┃┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-┃ღ *Activo Durante | Active During* 
-┃➥ ${uptime}
-┃ღ *Usuario(s) | Users* 
-┃➥ ${Object.keys(global.db.data.users).length} 
-┃ღ *Chat(s) Prohibido(s) | Forbidden Chats*
-┃➥ ${Object.entries(global.db.data.chats).filter(chat => chat[1].isBanned).length} 
-┃ღ *Usuario(s) Prohibido(s) | Prohibited Urs*
-┃➥ ${Object.entries(global.db.data.users).filter(user => user[1].banned).length} 
-╰━━━━━━━━━━━━━━━━━━⬣`
-    await conn.sendFile(m.chat, gataImg, 'lp.jpg', estado, fkontak, false, {
+const handler = async (m, {conn, usedPrefix}) => {
+    const datas = global
+    const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
+    const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
+    const tradutor = _translate.plugins.info_estado
+
+    const _uptime = process.uptime() * 1000;
+    const uptime = clockString(_uptime);
+    const totalusrReg = Object.values(global.db.data.users).filter((user) => user.registered == true).length;
+    const totalusr = Object.keys(global.db.data.users).length;
+    const chats = Object.entries(conn.chats).filter(
+        ([id, data]) => id && data.isChats,
+    );
+    const groupsIn = chats.filter(([id]) => id.endsWith("@g.us"));
+    const groups = chats.filter(([id]) => id.endsWith("@g.us"));
+    const used = process.memoryUsage();
+    const {restrict, antiCall, antiprivado, modejadibot} =
+    global.db.data.settings[conn.user.jid] || {};
+    const {autoread, gconly, pconly, self} = global.opts || {};
+    const old = performance.now();
+    const neww = performance.now();
+    const rtime = (neww - old).toFixed(7);
+    const wm = 'The Mystic Bot';
+    const info = ` ${tradutor.texto1[0]}
+
+  ${tradutor.texto1[1]} Bruno Sobrino
+  ${tradutor.texto1[2]} +5219992095479
+  ${tradutor.texto1[3]} paypal.me/BrunoSob
+
+  ${tradutor.texto1[4]} ${rtime}
+  ${tradutor.texto1[5]} ${uptime}
+  ${tradutor.texto1[6]} ${usedPrefix}
+  ${tradutor.texto1[7]} ${self ? "privado" : "público"}
+  ${tradutor.texto1[8]} ${totalusrReg}
+  ${tradutor.texto1[9]} ${totalusr}
+  ${tradutor.texto1[10]} ${(conn.user.jid == global.conn.user.jid ? '' : `Sub-bot de:\n ▢ +${global.conn.user.jid.split`@`[0]}`) || 'No es sub-bot'}
+ 
+  ${tradutor.texto1[11]} ${chats.length - groups.length}
+  ${tradutor.texto1[12]} ${groups.length}
+  ${tradutor.texto1[13]} ${chats.length}
+ 
+  ${tradutor.texto1[14]} ${autoread ? "activo" : "desactivado"}
+  ${tradutor.texto1[15]} ${restrict ? "activo" : "desactivado"}
+  ${tradutor.texto1[16]} ${pconly ? "activado" : "desactivado"}
+  ${tradutor.texto1[17]} ${gconly ? "activado" : "desactivado"}
+  ${tradutor.texto1[18]} ${antiprivado ? "activado" : "desactivado"}
+  ${tradutor.texto1[19]} ${antiCall ? "activado" : "desactivado"}
+  ${tradutor.texto1[20]} ${modejadibot ? "activado" : "desactivado"}`.trim();
+    const doc = [
+        "pdf",
+        "zip",
+        "vnd.openxmlformats-officedocument.presentationml.presentation",
+        "vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+    const document = doc[Math.floor(Math.random() * doc.length)];
+    const Message = {
+        document: {url: `https://github.com/BrunoSobrino/TheMystic-Bot-MD`},
+        mimetype: `application/${document}`,
+        fileName: `Documento`,
+        fileLength: 99999999999999,
+        pageCount: 200,
         contextInfo: {
+            forwardingScore: 200,
+            isForwarded: true,
             externalAdReply: {
-                mediaUrl: null,
-                mediaType: 1,
-                description: null,
-                title: gt,
-                body: ' 😻 𝗦𝘂𝗽𝗲𝗿 𝗚𝗮𝘁𝗮𝗕𝗼𝘁-𝗠𝗗 - 𝗪𝗵𝗮𝘁𝘀𝗔𝗽𝗽 ',
-                previewType: 0,
-                thumbnail: gataImg,
-                sourceUrl: accountsgb
-            }
-        }
-    })
-    /*await conn.sendButton(m.chat, estado, `𝙂𝘼𝙏𝘼 𝘿𝙄𝙊𝙎 - 𝘼𝙎𝙄𝙎𝙏𝙀𝙉𝘾𝙄𝘼\n${asistencia}\n\n` + wm, pp, [
-    ['𝙈𝙚𝙣𝙪́ 𝙘𝙤𝙢𝙥𝙡𝙚𝙩𝙤 | 𝙁𝙪𝙡𝙡 𝙈𝙚𝙣𝙪', '.allmenu'],
-    ['𝙑𝙚𝙡𝙤𝙘𝙞𝙙𝙖𝙙 | 𝙎𝙥𝙚𝙚𝙙', '/ping'],
-    ['𝙑𝙤𝙡𝙫𝙚𝙧 𝙖𝙡 𝙈𝙚𝙣𝙪́ | 𝘽𝙖𝙘𝙠 𝙩𝙤 𝙈𝙚𝙣𝙪', '#menu']], null, [
-    ['𝙂𝙖𝙩𝙖𝘽𝙤𝙩-𝙈𝘿', `${md}`]], fakeChannel, m)*/
-}
-handler.help = ['estado']
-handler.tags = ['main']
-handler.command = /^(estado|status|estate|state|heygata|stado|stats|botstat(us)?)$/i
-export default handler
+                mediaUrl: "https://github.com/BrunoSobrino/TheMystic-Bot-MD",
+                mediaType: 2,
+                previewType: "pdf",
+                title: "The Mystic - Bot",
+                body: tradutor.texto2,
+                thumbnail: imagen1,
+                sourceUrl: "https://github.com/BrunoSobrino/TheMystic-Bot-MD",
+            },
+        },
+        caption: info,
+        footer: wm,
+        headerType: 6,
+    };
+    conn.sendMessage(m.chat, Message, {quoted: m});
+};
+
+handler.command = /^(ping|info|status|estado|infobot)$/i;
+export default handler;
 
 function clockString(ms) {
-    let h = isNaN(ms) ? '--' : Math.floor(ms / 3600000)
-    let m = isNaN(ms) ? '--' : Math.floor(ms / 60000) % 60
-    let s = isNaN(ms) ? '--' : Math.floor(ms / 1000) % 60
-    return [h, m, s].map(v => v.toString().padStart(2, 0)).join(':')
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor(ms / 60000) % 60;
+    const s = Math.floor(ms / 1000) % 60;
+    console.log({ms, h, m, s});
+    return [h, m, s].map((v) => v.toString().padStart(2, 0)).join(":");
 }

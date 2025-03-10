@@ -1,12 +1,20 @@
-import {createHash} from 'crypto'
+import {createHash} from 'crypto';
 
-let handler = async function (m, {conn, text, usedPrefix}) {
-    let sn = createHash('md5').update(m.sender).digest('hex').slice(0, 6)
-    await conn.fakeReply(m.chat, sn, '0@s.whatsapp.net', `⬇️ *ESE ES SU NUMERO DE SERIE* ⬇️`, 'status@broadcast')
-//await m.reply(`${sn}`.trim())
-}
-handler.help = ['myns']
-handler.tags = ['xp']
-handler.command = /^(myns|ceksn)$/i
-handler.register = true
-export default handler
+
+const handler = async function (m, {conn, text, usedPrefix}) {
+    const datas = global
+    const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
+    const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
+    const tradutor = _translate.plugins.rpg_myns
+
+    const sn = createHash('md5').update(m.sender).digest('hex');
+    m.reply(`┏┅ ━━━━━━━━━━━━ ┅ ━
+┃${tradutor.texto1} 
+┃ ${sn}
+┗┅ ━━━━━━━━━━━━ ┅ ━`.trim());
+};
+handler.help = ['myns'];
+handler.tags = ['xp'];
+handler.command = /^(myns|ceksn)$/i;
+handler.register = true;
+export default handler;

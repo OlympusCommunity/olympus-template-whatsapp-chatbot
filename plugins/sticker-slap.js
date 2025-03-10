@@ -1,28 +1,45 @@
-import {sticker} from '../lib/sticker.js'
+import {sticker} from "../src/libraries/sticker.js";
+import fetch from "node-fetch";
 
-let MessageType = (await import(global.baileys)).default
-let handler = async (m, {conn}) => {
-    try {
-        if (m.quoted?.sender) m.mentionedJid.push(m.quoted.sender)
-        if (!m.mentionedJid.length) m.mentionedJid.push(m.sender)
-//let res = await fetch('https://neko-love.xyz/api/v1/slap')
-//let json = await res.json()
-//let { url } = json
-        let stiker = await sticker(null, s[Math.floor(Math.random() * s.length)], `+${m.sender.split('@')[0]} le dio una bofetada a ${m.mentionedJid.map((user) => (user === m.sender) ? 'alguien ' : `+${user.split('@')[0]}`).join(', ')}`)
-        conn.sendFile(m.chat, stiker, null, {asSticker: true})
-    } catch (e) {
+
+const handler = async (m, {conn, args, usedPrefix, command}) => {
+    const datas = global
+    const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
+    const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
+    const tradutor = _translate.plugins.sticker_slap
+
+    let who;
+    if (m.isGroup) {
+        who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : false;
+    } else {
+        who = m.chat;
     }
-}
-handler.help = ['slap']
-handler.tags = ['General']
-handler.command = /^slap|bofetada|manotada|abofetear|golpear/i
-export default handler
-
-const s = [
-    "https://media.tenor.com/XiYuU9h44-AAAAAC/anime-slap-mad.gif",
-    "https://img.photobucket.com/albums/v639/aoie_emesai/100handslap.gif",
-    "https://gifdb.com/images/high/yuruyuri-akari-kyoko-anime-slap-fcacgc0edqhci6eh.gif",
-    "https://gifdb.com/images/file/anime-sibling-slap-ptjipasdw3i3hsb0.gif",
-    "https://c.tenor.com/Lc7C5mLIVIQAAAAC/tenor.gif",
-    "https://i.pinimg.com/originals/71/a5/1c/71a51cd5b7a3e372522b5011bdf40102.gif"
-]
+    const textquien = `${tradutor.texto1}\n◉ ${usedPrefix + command} @${global.suittag}`;
+    if (who === m.chat && m.isGroup || !who && m.isGroup) return m.reply(textquien, m.chat, {mentions: conn.parseMention(textquien)});
+    try {
+        let name;
+        if (who === m.chat) {
+            name = "𝚃𝚑𝚎 𝙼𝚢𝚜𝚝𝚒𝚌 - 𝙱𝚘𝚝";
+        } else {
+            name = conn.getName(who);
+        }
+        let name2 = conn.getName(m.sender);
+        let apislap = await fetch(`https://api.waifu.pics/sfw/slap`);
+        let jkis = await apislap.json();
+        let {url} = jkis;
+        let stiker = await sticker(null, url, `${name2} le dio una bofetada a ${name}`, null);
+        conn.sendFile(m.chat, stiker, null, {asSticker: true}, m, true, {
+            contextInfo: {
+                forwardingScore: 200,
+                isForwarded: true
+            }
+        }, {quoted: m});
+    } catch {
+        throw tradutor.texto2;
+    }
+    ;
+};
+handler.help = ["slap"];
+handler.tags = ["General"];
+handler.command = /^(slap|bofetada)$/i;
+export default handler;

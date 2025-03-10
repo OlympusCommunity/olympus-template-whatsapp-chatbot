@@ -1,13 +1,29 @@
-let handler = async (m, {conn, text, args, usedPrefix, command}) => {
-    let opciones = text.split('|');
-    if (!opciones[0]) return conn.reply(m.chat, `𝙐𝙎𝙀 𝙀𝙇 𝘾𝙊𝙈𝘼𝙉𝘿𝙊 𝘿𝙀 𝙇𝘼 𝙎𝙄𝙂𝙐𝙄𝙀𝙉𝙏𝙀 𝙁𝙊𝙍𝙈𝘼:\n*${usedPrefix + command} Motivo de Encuesta|Opción1|Opción2|Opción3...*`, m);
-    if (!opciones[1]) return conn.reply(m.chat, `𝙋𝘼𝙍𝘼 𝘾𝙍𝙀𝘼𝙍 𝙊𝙋𝘾𝙄𝙊𝙉𝙀𝙎, 𝙀𝙎𝙏𝙀 𝙀𝙎 𝙀𝙇 𝙁𝙊𝙍𝙈𝘼𝙏𝙊:\n*${usedPrefix + command} Motivo de Encuesta|Opción1|Opción2|Opción3...*`, m);
-    if (opciones.length > 13) return conn.reply(m.chat, `𝙈𝘼𝙓𝙄𝙈𝙊 *12* 𝙊𝙋𝘾𝙄𝙊𝙉𝙀𝙎!!`, m);
-    let pregunta = opciones[0];
-    let respuestas = opciones.slice(1);
-    let mensaje = `📊 𝙀𝙉𝘾𝙐𝙀𝙎𝙏𝘼 𝘾𝙍𝙀𝘼𝘿𝘼 𝙋𝙊𝙍:\n*❤️⇢ ${conn.getName(m.sender)}*\n\n${pregunta}`;
-    await conn.sendMessage(m.chat, {poll: {name: mensaje, values: respuestas, selectableCount: 1}}, {quoted: m});
-};
-handler.command = ['poll', 'encuesta', 'crearencuesta', 'startpoll', 'encuestas', 'polls'];
+const handler = async (m, {conn, text, args, usedPrefix, command}) => {
+    const datas = global
+    const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
+    const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
+    const tradutor = _translate.plugins.herramientas_encuesta
 
+    let name = await conn.getName(m.sender);
+    if (name == 'undefined') name = 'Indefinido';
+    const b = text.split('|');
+    if (!b[1]) throw `${tradutor.texto1[0]} ${usedPrefix + command} ${tradutor.texto1[1]}`;
+    if (b[12]) throw `${tradutor.texto1[0]} ${usedPrefix + command} ${tradutor.texto1[1]}`;
+    const caption = `${tradutor.texto2[0]}\n${name}\n${tradutor.texto2[1]}\n${text.split('|')[0]}`.trim();
+    const options = text.split("|").slice(1).map(option => ({optionName: option.trim()}));
+    const sendPollMessage = {
+        messageContextInfo: {
+            messageSecret: "bT3tfZngfSMWK2zOEL8pSclPG+xldidYDX+ybB8vdEw="
+        },
+        pollCreationMessage: {
+            name: caption,
+            options: options,
+            selectableOptionsCount: 1,
+        }
+    };
+    conn.relayMessage(m.chat, sendPollMessage, {quoted: m});
+};
+handler.help = ['encuesta question|option|option'];
+handler.tags = ['group'];
+handler.command = ['poll', 'encuesta'];
 export default handler;

@@ -1,40 +1,13 @@
 import axios from 'axios';
 import cheerio from 'cheerio';
 
-const handler = async (m, {conn, text, usedPrefix, command}) => {
-    if (!text) throw `${lenguajeGB['smsAvisoMG']()}${mid.smsMalused}\n*${usedPrefix + command} Universe*`
-    wikipedia(`${text}`).then((res) => {
-        conn.reply(m.chat, `${mid.buscador9}\n\n` + res.result.isi, fkontak, {
-            contextInfo: {
-                externalAdReply: {
-                    mediaUrl: null,
-                    mediaType: 1,
-                    description: null,
-                    title: '𝙂𝙖𝙩𝙖𝘽𝙤𝙩-𝙈𝘿 | 𝙒𝙞𝙠𝙞𝙥𝙚𝙙𝙞𝙖',
-                    body: '𝗦𝘂𝗽𝗲𝗿 𝗪𝗵𝗮𝘁𝘀𝗔𝗽𝗽 𝗕𝗼𝘁 🐱❤️',
-                    previewType: 0,
-                    thumbnail: imagen2,
-                    sourceUrl: accountsgb
-                }
-            }
-        })
-    }).catch((e) => {
-        conn.reply(m.chat, `${lenguajeGB['smsMalError3']()}#report ${lenguajeGB['smsMensError2']()} ${usedPrefix + command}\n\n${wm}`, fkontak, m)
-        console.log(`❗❗ ${lenguajeGB['smsMensError2']()} ${usedPrefix + command} ❗❗`)
-        console.log(e)
-        handler.limit = false
-    })
-};
-handler.help = ['wikipedia'].map((v) => v + ' <apa>');
-handler.tags = ['internet'];
-handler.command = /^(wiki|wikipedia)$/i;
-handler.exp = 40
-handler.level = 3
-handler.limit = 1
-handler.register = true
-export default handler;
 
 async function wikipedia(querry) {
+    const datas = global
+    const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
+    const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
+    const tradutor = _translate.plugins.buscador_wikipedia
+
     try {
         const link = await axios.get(`https://es.wikipedia.org/wiki/${querry}`);
         const $ = cheerio.load(link.data);
@@ -64,3 +37,16 @@ async function wikipedia(querry) {
         return notFond;
     }
 }
+
+const handler = async (m, {conn, text, usedPrefix, command}) => {
+    if (!text) throw `*${tradutor.texto1[0]} *${usedPrefix + command} ${tradutor.texto1[1]} *${usedPrefix + command} Estrellas*`;
+    wikipedia(`${text}`).then((res) => {
+        m.reply(`*${tradutor.texto2}*\n\n` + res.result.isi);
+    }).catch(() => {
+        m.reply(`*${tradutor.texto3}*`);
+    });
+};
+handler.help = ['wikipedia'].map((v) => v + ' <apa>');
+handler.tags = ['internet'];
+handler.command = /^(wiki|wikipedia)$/i;
+export default handler;

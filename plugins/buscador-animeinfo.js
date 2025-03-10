@@ -1,56 +1,41 @@
 import translate from '@vitalets/google-translate-api';
 import {Anime} from '@shineiichijo/marika';
 
+
 const client = new Anime();
-const handler = async (m, {conn, text, command, usedPrefix}) => {
-    if (!text) return m.reply(`${lenguajeGB['smsAvisoMG']()} ${mid.smsMalused2}`);
+const handler = async (m, {conn, text, usedPrefix}) => {
+    const datas = global
+    const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
+    const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
+    const tradutor = _translate.plugins.buscador_animeinfo
+
+    if (!text) return m.reply(`*${tradutor.texto1}*`);
     try {
         const anime = await client.searchAnime(text);
         const result = anime.data[0];
         const resultes = await translate(`${result.background}`, {to: 'es', autoCorrect: true});
         const resultes2 = await translate(`${result.synopsis}`, {to: 'es', autoCorrect: true});
-        const AnimeInfo = ` ${mid.smsYT1}
-❣ ${result.title}
-┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈   
- ${mid.buscador2}
-❣ ${result.episodes}
-┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ 
- ${mid.buscador3}
-❣ ${result.source.toUpperCase()}
-┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ 
- ${mid.buscador4}
-❣ ${result.aired.from}
-┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ 
- ${mid.buscador5}
-❣ ${result.popularity}
-┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ 
- ${mid.buscador6}
-❣ ${result.favorites}
-┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ 
- ${mid.smsYT5}
-❣ ${result.duration}
-┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ 
- ${mid.buscador7}
-❣ ${result.rating}
-┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ 
- ${mid.buscador8}
-❣ ${result.trailer.url}
-┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ 
- ${mid.smsYT4}
-❣ ${result.url}`;
-        conn.sendButton(m.chat, AnimeInfo, null, result.images.jpg.image_url, [
-            ['𝙈𝙚𝙣𝙪 𝘽𝙪𝙨𝙦𝙪𝙚𝙙𝙖𝙨 | 𝙎𝙚𝙖𝙧𝙘𝙝𝙚𝙨 🔎', '#buscarmenu'],
-            ['𝙈𝙚𝙣𝙪 𝘾𝙤𝙢𝙥𝙡𝙚𝙩𝙤 | 𝙁𝙪𝙡𝙡 𝙈𝙚𝙣𝙪 ✨', '.allmenu'],
-            ['𝙑𝙤𝙡𝙫𝙚𝙧 𝙖𝙡 𝙈𝙚𝙣𝙪́ | 𝘽𝙖𝙘𝙠 𝙩𝙤 𝙈𝙚𝙣𝙪 ☘️', '/menu']], null, [['𝙄𝙣𝙨𝙩𝙖𝙜𝙧𝙖𝙢', ig]], m)
-//conn.sendFile(m.chat, result.images.jpg.image_url, 'error.jpg', AnimeInfo, fkontak, false, { contextInfo: {externalAdReply :{ mediaUrl: null, mediaType: 1, description: null, title: gt, body: ' 😻 𝗦𝘂𝗽𝗲𝗿 𝗚𝗮𝘁𝗮𝗕𝗼𝘁-𝗠𝗗 - 𝗪𝗵𝗮𝘁𝘀𝗔𝗽𝗽 ', previewType: 0, thumbnail: gataImg, sourceUrl: accountsgb }}})
-//conn.sendFile(m.chat, result.images.jpg.image_url, 'error.jpg', AnimeInfo, fkontak);
-    } catch (e) {
-        await conn.reply(m.chat, `${lenguajeGB['smsMalError3']()}#report ${lenguajeGB['smsMensError2']()} ${usedPrefix + command}\n\n${wm}`, fkontak, m)
-        console.log(`❗❗ ${lenguajeGB['smsMensError2']()} ${usedPrefix + command} ❗❗`)
-        console.log(e)
+        const AnimeInfo = `
+${tradutor.texto2[0]} ${result.title}
+${tradutor.texto2[1]}* ${result.type}
+${tradutor.texto2[2]} ${result.status.toUpperCase().replace(/\_/g, ' ')}
+${tradutor.texto2[3]} ${result.episodes}
+${tradutor.texto2[4]} ${result.duration}*
+${tradutor.texto2[5]} ${result.source.toUpperCase()}
+${tradutor.texto2[6]} ${result.aired.from}
+${tradutor.texto2[7]} ${result.aired.to}
+${tradutor.texto2[8]} ${result.popularity}
+${tradutor.texto2[9]} ${result.favorites}
+${tradutor.texto2[10]} ${result.rating}
+${tradutor.texto2[11]} ${result.rank}
+${tradutor.texto2[12]} ${result.trailer.url}
+${tradutor.texto2[13]} ${result.url}
+${tradutor.texto2[14]} ${resultes.text}
+${tradutor.texto2[15]} ${resultes2.text}`;
+        conn.sendFile(m.chat, result.images.jpg.image_url, 'error.jpg', AnimeInfo, m);
+    } catch {
+        throw `${tradutor.texto3}`;
     }
-}
+};
 handler.command = /^(anime|animeinfo)$/i;
-//handler.level = 2
-//handler.register = true
 export default handler;

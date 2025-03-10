@@ -1,20 +1,21 @@
-import {toAudio} from '../lib/converter.js'
+import {toAudio} from '../src/libraries/converter.js';
 
-let handler = async (m, {conn, usedPrefix, command}) => {
-    let q = m.quoted ? m.quoted : m
-    let mime = (m.quoted ? m.quoted : m.msg).mimetype || ''
-    if (!/video|audio/.test(mime)) throw `${lenguajeGB['smsAvisoMG']()}${mid.smsconvert4}`
-    await conn.sendPresenceUpdate('recording', m.chat)
-    let media = await q.download?.()
-    if (!media && !/video/.test(mime)) throw `${lenguajeGB['smsAvisoFG']()}${mid.smsconvert5}`
-    if (!media && !/audio/.test(mime)) throw `${lenguajeGB['smsAvisoFG']()}${mid.smsconvert5}`
-    let audio = await toAudio(media, 'mp4')
-    if (!audio.data && !/audio/.test(mime)) throw `${lenguajeGB['smsAvisoFG']()}${mid.smsconvert6}`
-    if (!audio.data && !/video/.test(mime)) throw `${lenguajeGB['smsAvisoFG']()}${mid.smsconvert6}`
-    conn.sendFile(m.chat, audio.data, 'error.mp3', '', m, null, {mimetype: 'audio/mp4'})
-}
-handler.help = ['tomp33 (reply)']
-handler.tags = ['audio']
-handler.command = /^(tomp3|toaudio)$/i
-// ['toomp3', 'toaudio', 'mmp3']
-export default handler
+const handler = async (m, {conn, usedPrefix, command}) => {
+    const datas = global
+    const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
+    const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
+    const tradutor = _translate.plugins.convertidor_tomp3
+
+
+    const q = m.quoted ? m.quoted : m;
+    const mime = (q || q.msg).mimetype || q.mediaType || '';
+    if (!/video|audio/.test(mime)) throw `*${tradutor.texto1}*`;
+    const media = await q.download();
+    if (!media) throw `*${tradutor.texto2}*`;
+    const audio = await toAudio(media, 'mp4');
+    if (!audio.data) throw `*${tradutor.texto3}*`;
+    conn.sendMessage(m.chat, {audio: audio.data, mimetype: 'audio/mpeg'}, {quoted: m});
+};
+handler.alias = ['tomp3', 'toaudio'];
+handler.command = /^to(mp3|audio)$/i;
+export default handler;
