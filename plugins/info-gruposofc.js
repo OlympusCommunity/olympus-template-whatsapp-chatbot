@@ -1,51 +1,66 @@
-const handler = async (m, {conn, usedPrefix}) => {
-    const datas = global
-    const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
-    const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
-    const tradutor = _translate.plugins.info_groupsofc
+let handler = async (m, {conn, command}) => {
+    let media = gataVidMenu
+    let str = `💕 𝘽𝙄𝙀𝙉𝙑𝙀𝙉𝙄𝘿𝙊(𝘼) 𝘼 𝙇𝙊𝙎 𝙂𝙍𝙐𝙋𝙊𝙎 𝙊𝙁𝙄𝘾𝙄𝘼𝙇𝙀𝙎
 
-    const doc = ['pdf', 'zip', 'vnd.openxmlformats-officedocument.presentationml.presentation', 'vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    const document = doc[Math.floor(Math.random() * doc.length)];
-    const text = `${tradutor.texto1[0]}
+💞 𝙒𝙀𝙇𝘾𝙊𝙈𝙀 𝙏𝙊 𝙏𝙃𝙀 𝙊𝙁𝙁𝙄𝘾𝙄𝘼𝙇 𝙂𝙍𝙊𝙐𝙋𝙎
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+𝙏𝙚 𝙞𝙣𝙫𝙞𝙩𝙤 𝙖 𝙦𝙪𝙚 𝙩𝙚 𝙪𝙣𝙖𝙨 𝙖 𝙡𝙖 𝘾𝙤𝙢𝙪𝙣𝙞𝙙𝙖𝙙 𝙂𝙖𝙩𝙖𝘽𝙤𝙩. ✨ 𝙏𝙚𝙣 𝙪𝙣 𝙗𝙪𝙚𝙣 𝙢𝙤𝙢𝙚𝙣𝙩𝙤 𝙚 𝙞𝙣𝙩𝙚𝙧𝙖𝙘𝙘𝙞𝙤𝙣𝙖 𝙘𝙤𝙣 𝙉𝙤𝙨𝙤𝙩𝙧𝙤𝙨. 😸
 
-${tradutor.texto1[1]}
-1.- https://chat.whatsapp.com/LjJbmdO0qSDEKgB60qivZj
+𝙄 𝙞𝙣𝙫𝙞𝙩𝙚 𝙮𝙤𝙪 𝙩𝙤 𝙟𝙤𝙞𝙣 𝙩𝙝𝙚 𝙂𝙖𝙩𝙖𝘽𝙤𝙩 𝘾𝙤𝙢𝙢𝙪𝙣𝙞𝙩𝙮. 💫 𝙃𝙖𝙫𝙚 𝙖 𝙜𝙤𝙤𝙙 𝙩𝙞𝙢𝙚 𝙖𝙣𝙙 𝙞𝙣𝙩𝙚𝙧𝙖𝙘𝙩 𝙬𝙞𝙩𝙝 𝙪𝙨. 😼
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+𓃠 *Versión de ${gt}*
+➥ ${vs}
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+✅ 𝙂𝙍𝙐𝙋𝙊 𝙊𝙁𝙄𝘾𝙄𝘼𝙇 ${gt}
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+✨ *Informate de las Novedades!!!*
+🐈 *${canal1}*\n
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+🐈 *${canal2}*\n
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ 
+🐈 *${canal3}*\n
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+🐈 𝐒𝐨𝐩𝐨𝐫𝐭𝐞 𝐆𝐚𝐭𝐚𝐁𝐨𝐭
+*${soporteGB}*\n
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+🐈 𝐆𝐫𝐮𝐩𝐨 𝐎𝐟𝐢𝐜𝐢𝐚𝐥 𝟏
+*${grupo1}*\n
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+🐈 𝐆𝐫𝐮𝐩𝐨 𝐎𝐟𝐢𝐜𝐢𝐚𝐥 𝟐
+*${grupo2}*\n
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+✅ *COLABORACIÓN CON* ${gt}
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ 
+🐈 𝐆𝐚𝐭𝐚𝐁𝐨𝐭 × 𝐋𝐨𝐥𝐢𝐁𝐨𝐭-𝐌𝐃 🌟
+*${grupo_collab1}*\n
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+🐈 𝐆𝐚𝐭𝐚𝐁𝐨𝐭 × 𝐂𝐮𝐫𝐢𝐨𝐬𝐢𝐭𝐲𝐁𝐨𝐭 🍧
+*${grupo_collab2}*\n
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+🐈 𝐆𝐚𝐭𝐚𝐁𝐨𝐭 × 𝐇𝐚𝐝𝐞𝐬𝐁𝐨𝐭 💫
+*${grupo_collab3}*\n
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+🐈 𝐆𝐚𝐭𝐚𝐁𝐨𝐭 × 𝐦𝐢𝐤𝐮𝐛𝐨𝐭 🎀
+*${grupo_collab4}*\n
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+ᥫ᭡༶A༶T༶M༶M༶ᰔᩚ 
+*https://chat.whatsapp.com/JqcMEpuH7OW9gZNWbtZMnx*\n
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+*Por favor, no ingresar con números de Bots, y mantener el respeto.*\n
+*Please, do not enter with Bot numbers, and maintain respect.*`
+    await conn.sendButton(m.chat, str, `𝙂𝘼𝙏𝘼 𝘿𝙄𝙊𝙎 - 𝘼𝙎𝙄𝙎𝙏𝙀𝙉𝘾𝙄𝘼\n${asistencia}\n\n` + wm, media, [
+        ['𝘾𝙪𝙚𝙣𝙩𝙖𝙨 𝙊𝙛𝙞𝙘𝙞𝙖𝙡𝙚𝙨 | 𝘼𝙘𝙘𝙤𝙪𝙣𝙩𝙨 ✅', '.cuentasgb'],
+        ['🎁 𝘿𝙤𝙣𝙖𝙧 | 𝘿𝙤𝙣𝙖𝙩𝙚', '.donar'],
+        ['𝙑𝙤𝙡𝙫𝙚𝙧 𝙖𝙡 𝙈𝙚𝙣𝙪́ | 𝘽𝙖𝙘𝙠 𝙩𝙤 𝙈𝙚𝙣𝙪 ☘️', '/menu']], null, [
+        ['𝙂𝙖𝙩𝙖𝘽𝙤𝙩-𝙈𝘿', `${md}`]], fkontak)
+}
+/*conn.sendHydrated(m.chat, str, `𝙂𝘼𝙏𝘼 𝘿𝙄𝙊𝙎 - 𝘼𝙎𝙄𝙎𝙏𝙀𝙉𝘾𝙄𝘼\n${asistencia}\n\n` + wm, media, 'https://github.com/GataNina-Li/GataBot-MD', '𝙂𝙖𝙩𝙖𝘽𝙤𝙩-𝙈𝘿', null, null, [
+['𝘾𝙪𝙚𝙣𝙩𝙖𝙨 𝙊𝙛𝙞𝙘𝙞𝙖𝙡𝙚𝙨 | 𝘼𝙘𝙘𝙤𝙪𝙣𝙩𝙨 ✅', '.cuentasgb'],
+['🎁 𝘿𝙤𝙣𝙖𝙧 | 𝘿𝙤𝙣𝙖𝙩𝙚', '.donar'],
+['𝙑𝙤𝙡𝙫𝙚𝙧 𝙖𝙡 𝙈𝙚𝙣𝙪́ | 𝘽𝙖𝙘𝙠 𝙩𝙤 𝙈𝙚𝙣𝙪 ☘️', '/menu']
+], m,)}*/
 
-2.- https://chat.whatsapp.com/DbXBmsydWBE1ZN3EoY0hRs
+handler.command = /^linkgc|grupos|gruposgatabot|gatabotgrupos|gruposdegatabot|groupofc|gruposgb|grupogb|groupgb$/i
+handler.exp = 33
 
-3.- https://chat.whatsapp.com/BW0P22xx7EGBTdH5IM851F
-
-4.- https://chat.whatsapp.com/CjexkGVr37J6GuSdDVAHzC
-
-> Sunlight Team  :
-
-1.- https://whatsapp.com/channel/0029Vam7yUg77qVaz3sIAp0z
-
-2.- https://chat.whatsapp.com/Fy74b6fgE9SJJpHVi6CKJY`.trim();
-    const buttonMessage = {
-        'document': {url: `https://github.com/BrunoSobrino/TheMystic-Bot-MD`},
-        'mimetype': `application/${document}`,
-        'fileName': `${tradutor.texto2}`,
-        'fileLength': 99999999999999,
-        'pageCount': 200,
-        'contextInfo': {
-            'forwardingScore': 200,
-            'isForwarded': true,
-            'externalAdReply': {
-                'mediaUrl': 'https://github.com/BrunoSobrino/TheMystic-Bot-MD',
-                'mediaType': 2,
-                'previewType': 'pdf',
-                'title': `${tradutor.texto3}`,
-                'body': wm,
-                'thumbnail': imagen1,
-                'sourceUrl': 'https://www.youtube.com/channel/UCSTDMKjbm-EmEovkygX-lCA'
-            }
-        },
-        'caption': text,
-        'footer': wm,
-        'headerType': 6
-    };
-    conn.sendMessage(m.chat, buttonMessage, {quoted: m});
-};
-handler.command = ['linkgc', 'grupos'];
-export default handler;
+export default handler

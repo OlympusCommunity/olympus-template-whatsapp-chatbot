@@ -2,32 +2,37 @@ import axios from "axios";
 import cheerio from "cheerio";
 import FormData from "form-data";
 
-
 const split = '|';
 const handler = async (m, {conn, args: [effect], text: txt, usedPrefix, command, name}) => {
-    const datas = global
-    const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
-    const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
-    const tradutor = _translate.plugins.maker_logos
-
-    if (!effect) throw tradutor.texto1 + effects.map((v) => v.title).join('\n° ඬ⃟📝 #logo ');
-    if (!effects.find((v) => (new RegExp(v.title, 'gi')).test(effect))) throw `${tradutor.texto2[0]} ${effect} ${tradutor.texto2[1]}`;
-    let text = txt.replace(new RegExp(effect, 'gi'), '').trimStart();
-    if (text.includes(split)) {
-        text = text.split(split).map((t) => t.trim());
-    } else {
-        text = [text.trim()];
+    if (!effect) throw `${mg}𝙐𝙎𝘼𝙍 𝙀𝙇 𝘾𝙊𝙈𝘼𝙉𝘿𝙊 𝘿𝙀 𝙎𝙄𝙂𝙐𝙄𝙀𝙉𝙏𝙀 𝙈𝘼𝙉𝙀𝙍𝘼\n𝙐𝙎𝙀 𝙏𝙃𝙀 𝘾𝙊𝙈𝙈𝘼𝙉𝘿 𝘼𝙎 𝙁𝙊𝙇𝙇𝙊𝙒𝙎\n💫 *${usedPrefix + command} efecto texto*\n𝙀𝙅𝙀𝙈𝙋𝙇𝙊 | 𝙀𝙓𝘼𝙈𝙋𝙇𝙀\n💫 *${usedPrefix + command} American-flag-3D GataBot*\n\n𝙀𝙉 𝘾𝘼𝙎𝙊 𝘿𝙀 𝙌𝙐𝙀 𝘿𝙄𝙂𝘼 𝙌𝙐𝙀 𝙁𝘼𝙇𝙏𝘼 𝙏𝙀𝙓𝙏𝙊 𝙐𝙎𝘼𝙍 𝘿𝙀 𝙀𝙎𝙏𝘼 𝙁𝙊𝙍𝙈𝘼\n𝙄𝙉 𝘾𝘼𝙎𝙀 𝙄𝙏 𝙎𝘼𝙔𝙎 𝙏𝙀𝙓𝙏 𝙄𝙎 𝙈𝙄𝙎𝙎𝙄𝙉𝙂 𝙐𝙎𝙀 𝙇𝙄𝙆𝙀 𝙏𝙃𝙄𝙎\n💫 *${usedPrefix + command} efecto texto1|texto2*\n𝙀𝙅𝙀𝙈𝙋𝙇𝙊 | 𝙀𝙓𝘼𝙈𝙋𝙇𝙀\n💫 *${usedPrefix + command} Wolf-Logo-Galaxy GataBot|GataDios*\n\n*✨ 𝙇𝙄𝙎𝙏𝘼 𝘿𝙀 𝙇𝙊𝙂𝙊𝙎*\n\n🤍 ${usedPrefix + command} ` + effects.map(v => v.title).join(`\n💜 ${usedPrefix + command} `)
+    if (!effects.find(v => (new RegExp(v.title, 'gi')).test(effect))) throw `${mg}𝙀𝙇 𝙇𝙊𝙂𝙊 ${effect}𝙉𝙊 𝙎𝙀 𝙀𝙉𝘾𝙐𝙀𝙉𝙏𝙍𝘼 𝙀𝙉 𝙇𝘼 𝙇𝙄𝙎𝙏𝘼 𝘿𝙀 𝙇𝙊𝙂𝙊𝙎\n\n𝙏𝙃𝙀 𝙇𝙊𝙂𝙊 ${effect} 𝙄𝙏 𝙄𝙎 𝙉𝙊𝙏 𝙄𝙉 𝙏𝙃𝙀 𝙇𝙄𝙎𝙏 𝙊𝙁 𝙇𝙊𝙂𝙊𝙎`
+    try {
+        let text = txt.replace(new RegExp(effect, 'gi'), '').trimStart();
+        if (text.includes(split)) {
+            text = text.split(split).map((t) => t.trim());
+        } else {
+            text = [text.trim()];
+        }
+        const effectoSelect = effects.find((effectz) => new RegExp(effectz?.title, 'i').test(effect));
+        const res = await maker(effectoSelect?.url, [...text]).catch(_ => {
+            throw `${mg} 𝙁𝘼𝙇𝙏𝘼 𝙀𝙇 𝙏𝙀𝙓𝙏𝙊  𝘼𝙇 𝙌𝙐𝙀 𝙎𝙀 𝙍𝙀𝘼𝙇𝙄𝙕𝘼𝙍𝘼 𝙀𝙇 𝙇𝙊𝙂𝙊`
+        })
+        if (typeof res == 'number') throw res == -1 ? `${mg}𝙀𝙇 𝙇𝙊𝙂𝙊 ${effect} 𝙉𝙊 𝙎𝙀 𝙀𝙉𝘾𝙐𝙀𝙉𝙏𝙍𝘼 𝙀𝙉 𝙇𝘼 𝙇𝙄𝙎𝙏𝘼 𝘿𝙀 𝙇𝙊𝙂𝙊𝙎\n\n𝙏𝙃𝙀 𝙇𝙊𝙂𝙊 ${effect} 𝙄𝙏 𝙄𝙎 𝙉𝙊𝙏 𝙄𝙉 𝙏𝙃𝙀 𝙇𝙄𝙎𝙏 𝙊𝙁 𝙇𝙊𝙂𝙊𝙎` : `𝙐𝙎𝘼𝙍 𝙀𝙇 𝘾𝙊𝙈𝘼𝙉𝘿𝙊 𝘿𝙀 𝙎𝙄𝙂𝙐𝙄𝙀𝙉𝙏𝙀 𝙈𝘼𝙉𝙀𝙍𝘼\n𝙐𝙎𝙀 𝙏𝙃𝙀 𝘾𝙊𝙈𝙈𝘼𝙉𝘿 𝘼𝙎 𝙁𝙊𝙇𝙇𝙊𝙒𝙎\n\n${usedPrefix + command} ${effect} ${new Array(res).fill('texto').map((v, i) => v + (i ? i + 1 : '')).join('|')}*`
+        await conn.sendMessage(m.chat, {
+            image: {url: res.image},
+            caption: `✅ *AQUÍ ESTA TÚ LOGO!!*\n✅ *HERE IS YOUR LOGO!!*\n\n🔆 *EFECTO: ${effect}*\n${wm}`
+        }, {quoted: m});
+    } catch (e) {
+        await m.reply(lenguajeGB['smsMalError3']() + '\n*' + lenguajeGB.smsMensError1() + '*\n*' + usedPrefix + `${lenguajeGB.lenguaje() == 'es' ? 'reporte' : 'report'}` + '* ' + `${lenguajeGB.smsMensError2()} ` + usedPrefix + command)
+        console.log(`❗❗ ${lenguajeGB['smsMensError2']()} ${usedPrefix + command} ❗❗`)
+        console.log(e)
     }
-    const effectoSelect = effects.find((effectz) => new RegExp(effectz?.title, 'i').test(effect));
-    const res = await maker(effectoSelect?.url, [...text]).catch(_ => {
-        throw tradutor.texto3
-    })
-    if (typeof res == 'number') throw res == -1 ? `${tradutor.texto4[0]} ${effect} ${tradutor.texto4[1]}` : `${tradutor.texto4[2]} ${usedPrefix + command} ${effect} ${new Array(res).fill('texto').map((v, i) => v + (i ? i + 1 : '')).join('|')}*`;
-    await conn.sendMessage(m.chat, {image: {url: res.image}, caption: `${tradutor.texto5} ${effect}*`}, {quoted: m});
-};
+}
 handler.help = ['logos'];
 handler.tags = ['nulis'];
 handler.command = /^(logo|logos|logos2)$/i;
+handler.limit = 1
+handler.register = true
 export default handler;
 
 var effects = [

@@ -1,19 +1,20 @@
-import fetch from 'node-fetch';
+import axios from "axios"
 
-const handler = async (m, {conn, args, text}) => {
-    const datas = global
-    const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
-    const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
-    const tradutor = _translate.plugins.herramientas_acortar
-
-    if (!text) throw tradutor.texto1;
-    const shortUrl1 = await (await fetch(`https://tinyurl.com/api-create.php?url=${args[0]}`)).text();
-    if (!shortUrl1) throw tradutor.texto2;
-    const done = `${tradutor.texto3[0]}\n${text}\n${tradutor.texto3[1]}\n${shortUrl1}`.trim();
-    m.reply(done);
-};
-handler.help = ['tinyurl', 'acortar'].map((v) => v + ' <link>');
-handler.tags = ['tools'];
-handler.command = /^(tinyurl|short|acortar|corto)$/i;
-handler.fail = null;
-export default handler;
+let handler = async (m, {conn, text, usedPrefix, command}) => {
+    if (!text) throw `${mg}${mid.smsAcorta}`
+    try {
+        let json = await axios.get(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(text)}`)
+        if (!json.data) throw json
+        let hasil = `${mid.smsAcorta2(text)}\n*${json.data}*`.trim()
+        m.reply(hasil)
+    } catch (e) {
+        await conn.reply(m.chat, `${lenguajeGB['smsMalError3']()}#report ${lenguajeGB['smsMensError2']()} ${usedPrefix + command}\n\n${wm}`, fkontak, m)
+        console.log(`❗❗ ${lenguajeGB['smsMensError2']()} ${usedPrefix + command} ❗❗`)
+        console.log(e)
+    }
+}
+handler.help = ['tinyurl', 'acortar'].map(v => v + ' <link>')
+handler.tags = ['tools']
+handler.command = /^(tinyurl|short|acortar|corto)$/i
+handler.fail = null
+export default handler
